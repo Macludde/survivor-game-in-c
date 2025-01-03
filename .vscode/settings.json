@@ -1,0 +1,25 @@
+{
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+		"**/*.o": true,
+		"**/*.exe": true,
+	},
+    "makefile.makefilePath": "src/Makefile",
+    "makefile.makePath": "mingw32-make",
+    "makefile.configurations": [],
+    "makefile.makeDirectory": "src",
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "c:\\Users\\ludvi\\Programming\\survivor-game-in-c\\src",
+            "binaryPath": "c:\\Users\\ludvi\\Programming\\survivor-game-in-c\\src\\main",
+            "binaryArgs": []
+        }
+    ],
+    "files.watcherExclude": {
+        "**/target": true
+    }
+}
