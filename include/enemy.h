@@ -1,6 +1,5 @@
 #pragma once
 #include "raylib.h"
-#include "time.h"
 #include "level.h"
 
 // this scales with player speed
@@ -20,7 +19,7 @@ typedef struct EnemySpawner
     Enemy *enemies;
     int enemyCount;
     int firstFreeSlot;
-    time_t lastSpawnTime;
+    double lastSpawnTime;
 } EnemySpawner;
 
 void InitializeEnemySpawner(EnemySpawner *enemySpawner);

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "enemy.h"
 #include "raymath.h"
+#include "helpers.h"
 
 void InitializeEnemySpawner(EnemySpawner *enemySpawner)
 {
@@ -10,7 +11,7 @@ void InitializeEnemySpawner(EnemySpawner *enemySpawner)
         .enemies = calloc(MAX_ENEMY_COUNT, sizeof(Enemy)),
         .enemyCount = 0,
         .firstFreeSlot = 0,
-        .lastSpawnTime = time(NULL),
+        .lastSpawnTime = time_in_seconds(),
     };
 }
 
@@ -52,11 +53,11 @@ bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
 void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
 {
     // if 2 seconds has passed, spawn enemy
-    // if (time(NULL) - enemySpawner->lastSpawnTime > 0.2)
-    // {
-    SpawnEnemy(enemySpawner, camera, level);
-    // enemySpawner->lastSpawnTime = time(NULL);
-    // }
+    if (time_in_seconds() - enemySpawner->lastSpawnTime > 0.2)
+    {
+        SpawnEnemy(enemySpawner, camera, level);
+        enemySpawner->lastSpawnTime = time_in_seconds();
+    }
     for (int i = 0; i < enemySpawner->enemyCount; i++)
     {
         TickEnemy(&enemySpawner->enemies[i]);
