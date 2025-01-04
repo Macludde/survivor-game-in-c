@@ -1,4 +1,5 @@
-typedef struct
+#pragma once
+typedef struct Level
 {
     int width;
     int height;

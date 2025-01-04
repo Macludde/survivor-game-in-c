@@ -8,6 +8,7 @@
 #include "level.h"
 #include "player.h"
 #include "camera.h"
+#include "enemy.h"
 
 #define DEFAULT_SCREEN_WIDTH 1280
 #define DEFAULT_SCREEN_HEIGHT 800
@@ -45,14 +46,18 @@ void HandleScreenResizing(Camera2D *camera)
 	}
 }
 
-unsigned int CONFIG_FLAGS = FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_ALWAYS_RUN;
-int main()
+void SetupWindow()
 {
+	unsigned int CONFIG_FLAGS = FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_ALWAYS_RUN;
 	SetConfigFlags(CONFIG_FLAGS & ~FLAG_VSYNC_HINT); // disable vsync for now
 	SetTargetFPS(targetFps);
-	// Create the window and OpenGL context
+	// Create the window and OpenGL contextREEN
 	InitWindow(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, GAME_NAME);
+}
 
+int main()
+{
+	SetupWindow();
 	Player player = INITIAL_PLAYER;
 	Camera2D camera = {
 		.offset = {DEFAULT_SCREEN_WIDTH / 2.0f, DEFAULT_SCREEN_HEIGHT / 2.0f},
@@ -68,6 +73,9 @@ int main()
 	// Level *level = AllocateLevel(1000, 1000, 20); // I chose to keep the level on the stack for now
 	InitializeLevel(&level);
 
+	EnemySpawner enemySpawner;
+	InitializeEnemySpawner(&enemySpawner);
+
 	printf("Size of player: %lu, size of camera: %lu, size of level: %lu, float: %lu\n", sizeof(player), sizeof(camera), sizeof(level), sizeof(float));
 
 	// game loop
@@ -78,6 +86,9 @@ int main()
 
 		TickPlayer(&player);
 		TickCamera(&camera, player.pos);
+		TickEnemySpawner(&enemySpawner, &camera, &level);
+		if (IsKeyPressed(KEY_F1))
+			RemoveAllEnemies(&enemySpawner);
 
 		// drawing
 		BeginDrawing();
@@ -86,17 +97,22 @@ int main()
 		BeginMode2D(camera);
 		// draw world
 		DrawLevel(&level);
+		DrawEnemies(&enemySpawner);
 		DrawPlayer(&player);
 
 		EndMode2D();
 
 		// draw UI
 
-		DrawText(TextFormat("FPS: %i, TARGET: %i", GetFPS(), targetFps), 10, 10, 20, DARKGRAY);
+		DrawFPS(10, 10);
+		DrawText(TextFormat("TARGET: %i", targetFps), 10, 40, 20, DARKGRAY);
 
 		// end the frame and get ready for the next one
 		EndDrawing();
 	}
+
+	free(level.trees);
+	free(enemySpawner.enemies);
 
 	// destroy the window and cleanup the OpenGL context
 	CloseWindow();

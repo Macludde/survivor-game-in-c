@@ -1,3 +1,4 @@
+#pragma once
 #include "raylib.h"
 
 // this scales with player speed
@@ -5,7 +6,7 @@
 #define RETARDATION_SPEED 10.0f
 #define PLAYER_COLOR DARKGREEN
 
-typedef struct
+typedef struct Player
 {
     Vector2 pos;
     Vector2 velocity;

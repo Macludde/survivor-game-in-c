@@ -1,3 +1,4 @@
+#pragma once
 #include "raylib.h"
 
 #define CAMERA_MOVEMENT_SPEED 2.0f
