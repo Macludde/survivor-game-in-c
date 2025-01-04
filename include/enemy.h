@@ -6,8 +6,8 @@
 // this scales with player speed
 #define MAX_ENEMY_COUNT 10
 #define ENEMY_COLOR RED
-#define ENEMY_ROTATION_SPEED 5.0f
-#define ENEMY_MOVEMENT_SPEED 400.0f
+#define ENEMY_ROTATION_SPEED 2.0f
+#define ENEMY_MOVEMENT_SPEED 100.0f
 
 typedef struct Enemy
 {

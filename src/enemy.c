@@ -70,21 +70,34 @@ void TickEnemy(Enemy *enemy, Vector2 target)
     enemy->pos = Vector2Add(enemy->pos, Vector2Scale(enemy->velocity, ENEMY_MOVEMENT_SPEED * GetFrameTime()));
 }
 
-#define RECTANGLE_WIDTH 50
-#define RECTANGLE_HEIGHT 30
+#define ENEMY_WIDTH 50
+#define ENEMY_HEIGHT 30
 #define TRIANGLE_WIDTH 20
 #define TRIANGLE_HEIGHT 40
 
-#define ENEMY_WIDTH (RECTANGLE_WIDTH + TRIANGLE_WIDTH)
+// unused
+void DrawEnemyWithoutRotation(Enemy *enemy)
+{
 
+    DrawRectangle(enemy->pos.x - ENEMY_WIDTH / 2, enemy->pos.y - ENEMY_HEIGHT / 2, ENEMY_WIDTH, ENEMY_HEIGHT, ENEMY_COLOR);
+    // Yes, triangle is larger than rectangle
+    Vector2 point1 = {enemy->pos.x + ENEMY_WIDTH / 2, enemy->pos.y - TRIANGLE_HEIGHT / 2};
+    Vector2 point2 = {enemy->pos.x + ENEMY_WIDTH / 2, enemy->pos.y + TRIANGLE_HEIGHT / 2};
+    Vector2 point3 = {enemy->pos.x + ENEMY_WIDTH / 2 + TRIANGLE_WIDTH, enemy->pos.y};
+    DrawTriangle(point1, point2, point3, ENEMY_COLOR);
+}
+
+void DrawEnemyWithRotation(Enemy *enemy)
+{
+    Vector2 rotateTowards = enemy->velocity;
+    float angle = atan2(rotateTowards.y, rotateTowards.x) * RAD2DEG;
+    DrawRectanglePro((Rectangle){enemy->pos.x - ENEMY_WIDTH / 2, enemy->pos.y - ENEMY_HEIGHT / 2, ENEMY_WIDTH, ENEMY_HEIGHT},
+                     (Vector2){ENEMY_WIDTH / 2, ENEMY_HEIGHT / 2}, angle, ENEMY_COLOR);
+    // skip triangle
+}
 void DrawEnemy(Enemy *enemy)
 {
-    DrawRectangle(enemy->pos.x - ENEMY_WIDTH / 2, enemy->pos.y - RECTANGLE_HEIGHT / 2, RECTANGLE_WIDTH, RECTANGLE_HEIGHT, ENEMY_COLOR);
-    // Yes, triangle is larger than rectangle
-    Vector2 point1 = {enemy->pos.x + ENEMY_WIDTH / 2 - TRIANGLE_WIDTH, enemy->pos.y - TRIANGLE_HEIGHT / 2};
-    Vector2 point2 = {enemy->pos.x + ENEMY_WIDTH / 2 - TRIANGLE_WIDTH, enemy->pos.y + TRIANGLE_HEIGHT / 2};
-    Vector2 point3 = {enemy->pos.x + ENEMY_WIDTH / 2, enemy->pos.y};
-    DrawTriangle(point1, point2, point3, ENEMY_COLOR);
+    DrawEnemyWithRotation(enemy);
 }
 
 void DrawEnemies(EnemySpawner *enemySpawner)
