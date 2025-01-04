@@ -86,7 +86,7 @@ int main()
 
 		TickPlayer(&player);
 		TickCamera(&camera, player.pos);
-		TickEnemySpawner(&enemySpawner, &camera, &level);
+		TickEnemySpawner(&enemySpawner, &camera, &level, &player);
 		if (IsKeyPressed(KEY_F1))
 			RemoveAllEnemies(&enemySpawner);
 

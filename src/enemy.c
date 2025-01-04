@@ -4,6 +4,7 @@
 #include "enemy.h"
 #include "raymath.h"
 #include "helpers.h"
+#include "player.h"
 
 void InitializeEnemySpawner(EnemySpawner *enemySpawner)
 {
@@ -50,7 +51,7 @@ bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
     return true;
 }
 
-void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
+void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player)
 {
     // if 2 seconds has passed, spawn enemy
     if (time_in_seconds() - enemySpawner->lastSpawnTime > 0.2)
@@ -59,14 +60,14 @@ void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level
         enemySpawner->lastSpawnTime = time_in_seconds();
     }
     for (int i = 0; i < enemySpawner->enemyCount; i++)
-    {
-        TickEnemy(&enemySpawner->enemies[i]);
-    }
+        TickEnemy(&enemySpawner->enemies[i], player->pos);
 }
 
-void TickEnemy(Enemy *enemy)
+void TickEnemy(Enemy *enemy, Vector2 target)
 {
-    // todo
+    Vector2 direction = Vector2Normalize(Vector2Subtract(target, enemy->pos));
+    enemy->velocity = Vector2Lerp(enemy->velocity, direction, ENEMY_ROTATION_SPEED * GetFrameTime());
+    enemy->pos = Vector2Add(enemy->pos, Vector2Scale(enemy->velocity, ENEMY_MOVEMENT_SPEED * GetFrameTime()));
 }
 
 #define RECTANGLE_WIDTH 50

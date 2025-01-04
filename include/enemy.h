@@ -1,10 +1,13 @@
 #pragma once
 #include "raylib.h"
 #include "level.h"
+#include "player.h"
 
 // this scales with player speed
-#define MAX_ENEMY_COUNT 1000
+#define MAX_ENEMY_COUNT 10
 #define ENEMY_COLOR RED
+#define ENEMY_ROTATION_SPEED 5.0f
+#define ENEMY_MOVEMENT_SPEED 400.0f
 
 typedef struct Enemy
 {
@@ -24,9 +27,9 @@ typedef struct EnemySpawner
 
 void InitializeEnemySpawner(EnemySpawner *enemySpawner);
 void RemoveAllEnemies(EnemySpawner *enemySpawner);
-void TickEnemy(Enemy *enemy);
+void TickEnemy(Enemy *enemy, Vector2 target);
 // uses camera and level for spawning, call this after ticking camera
-void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level);
+void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player);
 void DrawEnemy(Enemy *enemy);
 void DrawEnemies(EnemySpawner *enemySpawner);
 Vector2 RandomPointOffScreen(Camera2D *camera, Level *level);
