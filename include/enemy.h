@@ -9,12 +9,17 @@
 #define ENEMY_ROTATION_SPEED 2.0f
 #define ENEMY_MOVEMENT_SPEED 100.0f
 
+#define ENEMY_DEFAULT_SIZE 40
+
 typedef struct Enemy
 {
     Vector2 pos;
+    // radius
+    float size;
     Vector2 velocity;
     float health;
     bool spawned;
+    Color color;
 } Enemy;
 
 typedef struct EnemySpawner

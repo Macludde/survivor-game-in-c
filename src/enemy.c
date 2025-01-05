@@ -5,62 +5,12 @@
 #include "raymath.h"
 #include "helpers.h"
 #include "player.h"
+#include "raylib.h"
 
 #define ENEMY_WIDTH 50
 #define ENEMY_HEIGHT 30
 #define TRIANGLE_WIDTH 20
 #define TRIANGLE_HEIGHT 40
-
-#define COLLISION_CIRCLE_SIZE 40
-
-bool CheckCollisionEnemies(Vector2 enemy1, Vector2 enemy2)
-{
-    return CheckCollisionCircles(enemy1, COLLISION_CIRCLE_SIZE / 2, enemy2, COLLISION_CIRCLE_SIZE / 2);
-}
-
-Enemy *CollidesWithAnyEnemy(Enemy *origin, Enemy *enemies, int enemyCount)
-{
-    for (int i = 0; i < enemyCount; i++)
-    {
-        if (enemies[i].spawned && CheckCollisionEnemies(origin->pos, enemies[i].pos) && origin != &enemies[i])
-            return &enemies[i];
-    }
-    return NULL;
-}
-
-void HandleEnemiesCollision(Enemy *enemy, Enemy *collided, Enemy *allEnemies, int enemyCount);
-void HandleCollisionByTurningAwayBothEnemies(Enemy *enemy, Enemy *collided)
-{
-    Vector2 delta = Vector2Subtract(enemy->pos, collided->pos);
-    Vector2 invDelta = Vector2Subtract(collided->pos, enemy->pos);
-    // overlap is same for both
-    float overlap = (COLLISION_CIRCLE_SIZE - Vector2Length(delta)) / COLLISION_CIRCLE_SIZE; // lower => more overlap
-
-    float rotationSpeed = ENEMY_ROTATION_SPEED * GetFrameTime() * overlap / 2;
-    enemy->velocity = Vector2Lerp(enemy->velocity, Vector2Normalize(delta), rotationSpeed);
-    collided->velocity = Vector2Lerp(collided->velocity, Vector2Normalize(invDelta), rotationSpeed);
-}
-
-// This causes jitters
-void HandleCollisionByPushingAwayCollided(Enemy *enemy, Enemy *collided, Enemy *allEnemies, int enemyCount)
-{
-    Vector2 delta = Vector2Subtract(collided->pos, enemy->pos);
-    float overlap = (COLLISION_CIRCLE_SIZE - Vector2Length(delta)) / COLLISION_CIRCLE_SIZE; // lower => more overlap
-    Vector2 pushAway = Vector2Scale(Vector2Normalize(delta), overlap * 1.05 + COLLISION_CIRCLE_SIZE / 20.0f);
-    collided->pos = Vector2Add(collided->pos, pushAway);
-    Enemy *newCollided = CollidesWithAnyEnemy(collided, allEnemies, enemyCount);
-    for (int i = 0; newCollided != NULL && i < 10; i++)
-    {
-        if (newCollided != enemy)
-            HandleEnemiesCollision(collided, newCollided, allEnemies, enemyCount);
-        newCollided = CollidesWithAnyEnemy(collided, allEnemies, enemyCount);
-    }
-}
-void HandleEnemiesCollision(Enemy *enemy, Enemy *collided, Enemy *allEnemies, int enemyCount)
-{
-    HandleCollisionByTurningAwayBothEnemies(enemy, collided);
-    // HandleCollisionByPushingAwayCollided(enemy, collided, allEnemies, enemyCount);
-}
 
 void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
 {
@@ -71,32 +21,20 @@ void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
     int iterations = 0;
     Enemy *collided;
     ++iterations;
-    collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
-    for (int i = 0; collided != NULL && i < 10; i++)
-    {
-        HandleEnemiesCollision(enemy, collided, allEnemies, enemyCount);
-        collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
-    }
-}
-
-// unused
-void DrawEnemyWithoutRotation(Enemy *enemy)
-{
-
-    DrawRectangle(enemy->pos.x - ENEMY_WIDTH / 2, enemy->pos.y - ENEMY_HEIGHT / 2, ENEMY_WIDTH, ENEMY_HEIGHT, ENEMY_COLOR);
-    // Yes, triangle is larger than rectangle
-    Vector2 point1 = {enemy->pos.x + ENEMY_WIDTH / 2, enemy->pos.y - TRIANGLE_HEIGHT / 2};
-    Vector2 point2 = {enemy->pos.x + ENEMY_WIDTH / 2, enemy->pos.y + TRIANGLE_HEIGHT / 2};
-    Vector2 point3 = {enemy->pos.x + ENEMY_WIDTH / 2 + TRIANGLE_WIDTH, enemy->pos.y};
-    DrawTriangle(point1, point2, point3, ENEMY_COLOR);
+    // collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
+    // for (int i = 0; collided != NULL && i < 10; i++)
+    // {
+    //     HandleEnemiesCollision(enemy, collided, allEnemies, enemyCount);
+    //     collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
+    // }
 }
 
 void DrawEnemyWithRotation(Enemy *enemy)
 {
     Vector2 rotateTowards = enemy->velocity;
     float angle = atan2(rotateTowards.y, rotateTowards.x) * RAD2DEG;
-    DrawRectanglePro((Rectangle){enemy->pos.x - ENEMY_WIDTH / 2, enemy->pos.y - ENEMY_HEIGHT / 2, ENEMY_WIDTH, ENEMY_HEIGHT},
-                     (Vector2){ENEMY_WIDTH / 2, ENEMY_HEIGHT / 2}, angle, ENEMY_COLOR);
+    DrawRectanglePro((Rectangle){enemy->pos.x - enemy->size, enemy->pos.y - enemy->size / 2, enemy->size * 2, enemy->size},
+                     (Vector2){enemy->size, enemy->size / 2}, angle, enemy->color);
     // skip triangle
 }
 void DrawEnemy(Enemy *enemy)
@@ -169,6 +107,7 @@ void RemoveAllEnemies(EnemySpawner *enemySpawner)
     enemySpawner->enemyCount = 0;
     enemySpawner->firstFreeSlot = 0;
 }
+
 // returns true if enemy was spawned, false if not
 bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
 {
@@ -180,6 +119,8 @@ bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
         .velocity = (Vector2){0, 0},
         .health = 100,
         .spawned = true,
+        .size = ENEMY_DEFAULT_SIZE * (GetRandomValue(8, 12) / 10.0f),
+        .color = SlightColorVariation(ENEMY_COLOR),
     };
     enemySpawner->enemyCount++;
     enemySpawner->firstFreeSlot = enemySpawner->firstFreeSlot + 1;
@@ -194,6 +135,7 @@ bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
     return true;
 }
 
+void HandleALlEnemyCollisions(Enemy *allEnemies, int enemyCount);
 void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player)
 {
     // if 2 seconds has passed, spawn enemy
@@ -202,6 +144,53 @@ void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level
         SpawnEnemy(enemySpawner, camera, level);
         enemySpawner->lastSpawnTime = time_in_seconds();
     }
-    for (int i = 0; i < enemySpawner->enemyCount; i++)
+    for (int i = 0; i < enemySpawner->enemyCount; ++i)
         TickEnemy(&enemySpawner->enemies[i], player->pos, enemySpawner->enemies, enemySpawner->enemyCount);
+    HandleALlEnemyCollisions(enemySpawner->enemies, enemySpawner->enemyCount);
+}
+
+void HandleCollisionByTurningAwayBothEnemies(Enemy *enemy, Enemy *collided)
+{
+    Vector2 delta = Vector2Subtract(enemy->pos, collided->pos);
+    Vector2 invDelta = Vector2Scale(delta, -1);
+    // overlap is same for both
+    float totalSize = enemy->size + collided->size;
+    float overlap = (totalSize - Vector2Length(delta)) / totalSize; // lower => more overlap
+
+    float rotationSpeed = 4 * ENEMY_ROTATION_SPEED * GetFrameTime() * overlap;
+    // float ratio = (collided->size / enemy->size) * (collided->size / enemy->size);
+    float ratio = (collided->size / (collided->size + enemy->size));
+    enemy->velocity = Vector2Lerp(enemy->velocity, Vector2Normalize(delta), rotationSpeed * ratio);
+    collided->velocity = Vector2Lerp(collided->velocity, Vector2Normalize(invDelta), rotationSpeed * (1 - ratio));
+}
+
+#define RELAXATION 3.0f // higher => bigger jumps, more jitter?
+void HandleALlEnemyCollisions(Enemy *allEnemies, int enemyCount)
+{
+    for (int i = 0; i < enemyCount; ++i)
+    {
+        if (!allEnemies[i].spawned)
+            continue;
+        for (int j = i + 1; j < enemyCount; ++j)
+        {
+            if (!allEnemies[j].spawned)
+                continue;
+            Vector2 delta = Vector2Subtract(allEnemies[i].pos, allEnemies[j].pos);
+            float distanceSqr = Vector2LengthSqr(delta);
+            float desiredDistance = allEnemies[i].size + allEnemies[j].size;
+            if (distanceSqr >= desiredDistance * desiredDistance)
+                continue;
+
+            float distance = sqrtf(distanceSqr);
+            float scale = (desiredDistance - distance) * RELAXATION * GetFrameTime();
+            Vector2 totalForce = Vector2Scale(Vector2Normalize(delta), scale);
+            // float ratio = (allEnemies[j].size / allEnemies[i].size) * (allEnemies[j].size / allEnemies[i].size);
+            float ratio = (allEnemies[j].size / (allEnemies[j].size + allEnemies[i].size));
+            if (ratio > 1 || ratio < 0)
+                ratio = ratio;
+            allEnemies[i].pos = Vector2Add(allEnemies[i].pos, Vector2Scale(totalForce, ratio));
+            allEnemies[j].pos = Vector2Add(allEnemies[j].pos, Vector2Scale(totalForce, ratio - 1)); // -1 * (1-ratio) = ratio - 1
+            HandleCollisionByTurningAwayBothEnemies(&allEnemies[i], &allEnemies[j]);
+        }
+    }
 }
