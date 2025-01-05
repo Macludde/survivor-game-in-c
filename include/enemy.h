@@ -4,10 +4,10 @@
 #include "player.h"
 
 // this scales with player speed
-#define MAX_ENEMY_COUNT 500
+#define MAX_ENEMY_COUNT 10
 #define ENEMY_COLOR RED
 #define ENEMY_ROTATION_SPEED 2.0f
-#define ENEMY_MOVEMENT_SPEED 100.0f
+#define ENEMY_MOVEMENT_SPEED 300.0f
 
 #define ENEMY_DEFAULT_SIZE 40
 
@@ -16,6 +16,7 @@ typedef struct Enemy
     Vector2 pos;
     // radius
     float size;
+    Vector2 targetVelocity;
     Vector2 velocity;
     float health;
     bool spawned;

@@ -16,7 +16,8 @@
 void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
 {
     Vector2 direction = Vector2Normalize(Vector2Subtract(target, enemy->pos));
-    enemy->velocity = Vector2Lerp(enemy->velocity, direction, ENEMY_ROTATION_SPEED * GetFrameTime());
+    enemy->targetVelocity = Vector2Lerp(enemy->targetVelocity, direction, ENEMY_ROTATION_SPEED * GetFrameTime());
+    enemy->velocity = Vector2Lerp(enemy->velocity, enemy->targetVelocity, ENEMY_ROTATION_SPEED * GetFrameTime());
     enemy->pos = Vector2Add(enemy->pos, Vector2Scale(enemy->velocity, ENEMY_MOVEMENT_SPEED * GetFrameTime()));
 
     int iterations = 0;
@@ -32,7 +33,7 @@ void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
 
 void DrawEnemyWithRotation(Enemy *enemy)
 {
-    Vector2 rotateTowards = enemy->velocity;
+    Vector2 rotateTowards = enemy->targetVelocity;
     float angle = atan2(rotateTowards.y, rotateTowards.x) * RAD2DEG;
     Rectangle rect = {enemy->pos.x, enemy->pos.y, enemy->size * 2, enemy->size};
     DrawRectanglePro(rect, (Vector2){enemy->size, enemy->size / 2}, angle, enemy->color);
@@ -120,7 +121,7 @@ bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
 
     enemySpawner->enemies[enemySpawner->firstFreeSlot] = (Enemy){
         .pos = RandomPointOffScreen(camera, level),
-        .velocity = (Vector2){0, 0},
+        .targetVelocity = (Vector2){0, 0},
         .health = 100,
         .spawned = true,
         .size = ENEMY_DEFAULT_SIZE * (GetRandomValue(8, 12) / 10.0f),
@@ -164,8 +165,8 @@ void HandleCollisionByTurningAwayBothEnemies(Enemy *enemy, Enemy *collided)
     float rotationSpeed = 4 * ENEMY_ROTATION_SPEED * GetFrameTime() * overlap;
     // float ratio = (collided->size / enemy->size) * (collided->size / enemy->size);
     float ratio = (collided->size / (collided->size + enemy->size));
-    enemy->velocity = Vector2Lerp(enemy->velocity, Vector2Normalize(delta), rotationSpeed * ratio);
-    collided->velocity = Vector2Lerp(collided->velocity, Vector2Normalize(invDelta), rotationSpeed * (1 - ratio));
+    enemy->targetVelocity = Vector2Lerp(enemy->targetVelocity, Vector2Normalize(delta), rotationSpeed * ratio);
+    collided->targetVelocity = Vector2Lerp(collided->targetVelocity, Vector2Normalize(invDelta), rotationSpeed * (1 - ratio));
 }
 
 #define ENEMY_INTERNAL_KNOCKBACK 3.0f // higher => bigger jumps, more jitter?
@@ -190,7 +191,7 @@ void HandleEnemyTreeCollision(Enemy *enemy, Vector2 tree, Vector2 delta, float d
     float overlap = desiredDistance - distance;
     Vector2 direction = Vector2Normalize(delta);
     enemy->pos = Vector2Add(enemy->pos, Vector2Scale(direction, overlap));
-    enemy->velocity = Vector2Lerp(enemy->velocity, Vector2Reflect(enemy->velocity, direction), 3 * GetFrameTime());
+    enemy->targetVelocity = Vector2Lerp(enemy->targetVelocity, Vector2Reflect(enemy->targetVelocity, direction), 3 * GetFrameTime());
 }
 
 void HandleAllEnemyCollisions(Enemy *allEnemies, int enemyCount, Level *level)
