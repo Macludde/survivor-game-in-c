@@ -52,6 +52,7 @@ void DrawLevelBackground(Level *level)
 	for (int i = 0; i < level->treeCount; i++)
 	{
 		DrawRectangleRec(TreeRectangle(trees[i]), BROWN);
+		DrawCircleLinesV(trees[i], TREE_COLLISION_RADIUS, PINK);
 	}
 }
 void DrawLevelForeground(Level *level)

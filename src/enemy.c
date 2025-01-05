@@ -33,13 +33,14 @@ void DrawEnemyWithRotation(Enemy *enemy)
 {
     Vector2 rotateTowards = enemy->velocity;
     float angle = atan2(rotateTowards.y, rotateTowards.x) * RAD2DEG;
-    DrawRectanglePro((Rectangle){enemy->pos.x - enemy->size, enemy->pos.y - enemy->size / 2, enemy->size * 2, enemy->size},
-                     (Vector2){enemy->size, enemy->size / 2}, angle, enemy->color);
-    // skip triangle
+    Rectangle rect = {enemy->pos.x, enemy->pos.y, enemy->size * 2, enemy->size};
+    DrawRectanglePro(rect, (Vector2){enemy->size, enemy->size / 2}, angle, enemy->color);
 }
 void DrawEnemy(Enemy *enemy)
 {
     DrawEnemyWithRotation(enemy);
+    DrawCircleLinesV(enemy->pos, enemy->size, PINK);
+    DrawCircleLinesV(enemy->pos, 1, PINK);
 }
 
 void DrawEnemies(EnemySpawner *enemySpawner)
@@ -135,7 +136,7 @@ bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
     return true;
 }
 
-void HandleALlEnemyCollisions(Enemy *allEnemies, int enemyCount);
+void HandleAllEnemyCollisions(Enemy *allEnemies, int enemyCount, Level *level);
 void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player)
 {
     // if 2 seconds has passed, spawn enemy
@@ -146,7 +147,7 @@ void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level
     }
     for (int i = 0; i < enemySpawner->enemyCount; ++i)
         TickEnemy(&enemySpawner->enemies[i], player->pos, enemySpawner->enemies, enemySpawner->enemyCount);
-    HandleALlEnemyCollisions(enemySpawner->enemies, enemySpawner->enemyCount);
+    HandleAllEnemyCollisions(enemySpawner->enemies, enemySpawner->enemyCount, level);
 }
 
 void HandleCollisionByTurningAwayBothEnemies(Enemy *enemy, Enemy *collided)
@@ -164,33 +165,55 @@ void HandleCollisionByTurningAwayBothEnemies(Enemy *enemy, Enemy *collided)
     collided->velocity = Vector2Lerp(collided->velocity, Vector2Normalize(invDelta), rotationSpeed * (1 - ratio));
 }
 
-#define RELAXATION 3.0f // higher => bigger jumps, more jitter?
-void HandleALlEnemyCollisions(Enemy *allEnemies, int enemyCount)
+#define ENEMY_INTERNAL_KNOCKBACK 3.0f // higher => bigger jumps, more jitter?
+void HandleEnemyEnemyCollision(Enemy *enemy1, Enemy *enemy2, Vector2 delta, float distanceSqr, float desiredDistance)
+{
+
+    float distance = sqrtf(distanceSqr);
+    float scale = (desiredDistance - distance) * ENEMY_INTERNAL_KNOCKBACK * GetFrameTime();
+    Vector2 totalForce = Vector2Scale(Vector2Normalize(delta), scale);
+    // float ratio = (enemy2->size / enemy1->size) * (enemy2->size / enemy1->size);
+    float ratio = (enemy2->size / (enemy2->size + enemy1->size));
+    if (ratio > 1 || ratio < 0)
+        ratio = ratio;
+    enemy1->pos = Vector2Add(enemy1->pos, Vector2Scale(totalForce, ratio));
+    enemy2->pos = Vector2Add(enemy2->pos, Vector2Scale(totalForce, ratio - 1)); // -1 * (1-ratio) = ratio - 1
+    HandleCollisionByTurningAwayBothEnemies(enemy1, enemy2);
+}
+
+void HandleEnemyTreeCollision(Enemy *enemy, Vector2 tree, Vector2 delta, float distanceSqr, float desiredDistance)
+{
+    float distance = sqrtf(distanceSqr);
+    float overlap = desiredDistance - distance;
+    Vector2 direction = Vector2Normalize(delta);
+    enemy->pos = Vector2Add(enemy->pos, Vector2Scale(direction, overlap));
+    enemy->velocity = Vector2Lerp(enemy->velocity, Vector2Reflect(enemy->velocity, direction), 3 * GetFrameTime());
+}
+
+void HandleAllEnemyCollisions(Enemy *allEnemies, int enemyCount, Level *level)
 {
     for (int i = 0; i < enemyCount; ++i)
     {
         if (!allEnemies[i].spawned)
             continue;
+        Enemy *curr = &allEnemies[i];
         for (int j = i + 1; j < enemyCount; ++j)
         {
             if (!allEnemies[j].spawned)
                 continue;
-            Vector2 delta = Vector2Subtract(allEnemies[i].pos, allEnemies[j].pos);
+            Vector2 delta = Vector2Subtract(curr->pos, allEnemies[j].pos);
             float distanceSqr = Vector2LengthSqr(delta);
-            float desiredDistance = allEnemies[i].size + allEnemies[j].size;
-            if (distanceSqr >= desiredDistance * desiredDistance)
-                continue;
-
-            float distance = sqrtf(distanceSqr);
-            float scale = (desiredDistance - distance) * RELAXATION * GetFrameTime();
-            Vector2 totalForce = Vector2Scale(Vector2Normalize(delta), scale);
-            // float ratio = (allEnemies[j].size / allEnemies[i].size) * (allEnemies[j].size / allEnemies[i].size);
-            float ratio = (allEnemies[j].size / (allEnemies[j].size + allEnemies[i].size));
-            if (ratio > 1 || ratio < 0)
-                ratio = ratio;
-            allEnemies[i].pos = Vector2Add(allEnemies[i].pos, Vector2Scale(totalForce, ratio));
-            allEnemies[j].pos = Vector2Add(allEnemies[j].pos, Vector2Scale(totalForce, ratio - 1)); // -1 * (1-ratio) = ratio - 1
-            HandleCollisionByTurningAwayBothEnemies(&allEnemies[i], &allEnemies[j]);
+            float desiredDistance = curr->size + allEnemies[j].size;
+            if (distanceSqr < desiredDistance * desiredDistance)
+                HandleEnemyEnemyCollision(curr, &allEnemies[j], delta, distanceSqr, desiredDistance);
+        }
+        for (int treeIndex = 0; treeIndex < level->treeCount; ++treeIndex)
+        {
+            Vector2 delta = Vector2Subtract(curr->pos, level->trees[treeIndex]);
+            float distanceSqr = Vector2LengthSqr(delta);
+            float desiredDistance = curr->size + TREE_COLLISION_RADIUS;
+            if (distanceSqr < desiredDistance * desiredDistance)
+                HandleEnemyTreeCollision(curr, level->trees[treeIndex], delta, distanceSqr, desiredDistance);
         }
     }
 }
