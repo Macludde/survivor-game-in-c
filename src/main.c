@@ -9,29 +9,13 @@
 #include "player.h"
 #include "camera.h"
 #include "enemy.h"
+#include "debug.h"
 
 #define DEFAULT_SCREEN_WIDTH 1280
 #define DEFAULT_SCREEN_HEIGHT 800
 #define GAME_NAME "SurvivorGame"
 
-int targetFps = 60;
-void HandleDebuggingKeys()
-{
-
-	if (IsKeyPressed(KEY_F10))
-	{
-		if (targetFps == 60)
-			targetFps = 40;
-		else if (targetFps == 40)
-			targetFps = 20;
-		else if (targetFps == 20)
-			targetFps = 0;
-		else
-			targetFps = 60;
-		SetTargetFPS(targetFps);
-	}
-}
-
+extern int targetFps;
 void HandleScreenResizing(Camera2D *camera)
 {
 	static int screenWidth;
@@ -80,8 +64,9 @@ int main()
 	while (!WindowShouldClose()) // run the loop untill the user presses ESCAPE or presses the Close button on the window
 	{
 		HandleScreenResizing(&camera);
+#ifdef DEBUG
 		HandleDebuggingKeys();
-
+#endif
 		TickPlayer(&player, &level);
 		TickCamera(&camera, player.pos);
 		TickEnemySpawner(&enemySpawner, &camera, &level, &player);
@@ -103,8 +88,10 @@ int main()
 
 		// draw UI
 
+#ifdef DEBUG
 		DrawFPS(10, 10);
 		DrawText(TextFormat("TARGET: %i", targetFps), 10, 40, 20, DARKGRAY);
+#endif
 
 		// end the frame and get ready for the next one
 		EndDrawing();

@@ -6,6 +6,7 @@
 #include "helpers.h"
 #include "player.h"
 #include "raylib.h"
+#include "debug.h"
 
 #define ENEMY_WIDTH 50
 #define ENEMY_HEIGHT 30
@@ -39,8 +40,10 @@ void DrawEnemyWithRotation(Enemy *enemy)
 void DrawEnemy(Enemy *enemy)
 {
     DrawEnemyWithRotation(enemy);
+#ifdef DEBUG_SHOW_HITBOXES
     DrawCircleLinesV(enemy->pos, enemy->size, PINK);
     DrawCircleLinesV(enemy->pos, 1, PINK);
+#endif
 }
 
 void DrawEnemies(EnemySpawner *enemySpawner)

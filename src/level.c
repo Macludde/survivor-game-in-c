@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "raylib.h"
 #include "raymath.h"
+#include "debug.h"
 
 #include "level.h"
 
@@ -52,7 +53,9 @@ void DrawLevelBackground(Level *level)
 	for (int i = 0; i < level->treeCount; i++)
 	{
 		DrawRectangleRec(TreeRectangle(trees[i]), BROWN);
+#ifdef DEBUG_SHOW_HITBOXES
 		DrawCircleLinesV(trees[i], TREE_COLLISION_RADIUS, PINK);
+#endif
 	}
 }
 void DrawLevelForeground(Level *level)
