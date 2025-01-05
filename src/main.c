@@ -76,8 +76,6 @@ int main()
 	EnemySpawner enemySpawner;
 	InitializeEnemySpawner(&enemySpawner);
 
-	printf("Size of player: %lu, size of camera: %lu, size of level: %lu, float: %lu\n", sizeof(player), sizeof(camera), sizeof(level), sizeof(float));
-
 	// game loop
 	while (!WindowShouldClose()) // run the loop untill the user presses ESCAPE or presses the Close button on the window
 	{
