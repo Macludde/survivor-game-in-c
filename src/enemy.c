@@ -28,7 +28,8 @@ Enemy *CollidesWithAnyEnemy(Enemy *origin, Enemy *enemies, int enemyCount)
     return NULL;
 }
 
-void TurnAwayCollidingEnemies(Enemy *enemy, Enemy *collided)
+void HandleEnemiesCollision(Enemy *enemy, Enemy *collided, Enemy *allEnemies, int enemyCount);
+void HandleCollisionByTurningAwayBothEnemies(Enemy *enemy, Enemy *collided)
 {
     Vector2 delta = Vector2Subtract(enemy->pos, collided->pos);
     Vector2 invDelta = Vector2Subtract(collided->pos, enemy->pos);
@@ -38,6 +39,27 @@ void TurnAwayCollidingEnemies(Enemy *enemy, Enemy *collided)
     float rotationSpeed = ENEMY_ROTATION_SPEED * GetFrameTime() * overlap / 2;
     enemy->velocity = Vector2Lerp(enemy->velocity, Vector2Normalize(delta), rotationSpeed);
     collided->velocity = Vector2Lerp(collided->velocity, Vector2Normalize(invDelta), rotationSpeed);
+}
+
+// This causes jitters
+void HandleCollisionByPushingAwayCollided(Enemy *enemy, Enemy *collided, Enemy *allEnemies, int enemyCount)
+{
+    Vector2 delta = Vector2Subtract(collided->pos, enemy->pos);
+    float overlap = (COLLISION_CIRCLE_SIZE - Vector2Length(delta)) / COLLISION_CIRCLE_SIZE; // lower => more overlap
+    Vector2 pushAway = Vector2Scale(Vector2Normalize(delta), overlap * 1.05 + COLLISION_CIRCLE_SIZE / 20.0f);
+    collided->pos = Vector2Add(collided->pos, pushAway);
+    Enemy *newCollided = CollidesWithAnyEnemy(collided, allEnemies, enemyCount);
+    for (int i = 0; newCollided != NULL && i < 10; i++)
+    {
+        if (newCollided != enemy)
+            HandleEnemiesCollision(collided, newCollided, allEnemies, enemyCount);
+        newCollided = CollidesWithAnyEnemy(collided, allEnemies, enemyCount);
+    }
+}
+void HandleEnemiesCollision(Enemy *enemy, Enemy *collided, Enemy *allEnemies, int enemyCount)
+{
+    HandleCollisionByTurningAwayBothEnemies(enemy, collided);
+    // HandleCollisionByPushingAwayCollided(enemy, collided, allEnemies, enemyCount);
 }
 
 void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
@@ -52,8 +74,7 @@ void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
     collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
     for (int i = 0; collided != NULL && i < 10; i++)
     {
-        // change velocity for next frame, such that it moves away
-        TurnAwayCollidingEnemies(enemy, collided);
+        HandleEnemiesCollision(enemy, collided, allEnemies, enemyCount);
         collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
     }
 }
