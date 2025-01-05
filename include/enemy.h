@@ -37,4 +37,3 @@ void RemoveAllEnemies(EnemySpawner *enemySpawner);
 void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player);
 void DrawEnemy(Enemy *enemy);
 void DrawEnemies(EnemySpawner *enemySpawner);
-Vector2 RandomPointOffScreen(Camera2D *camera, Level *level);

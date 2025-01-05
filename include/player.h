@@ -15,7 +15,7 @@ typedef struct Player
     float size;
 } Player;
 
-#define INITIAL_PLAYER (Player){.speed = 300, .size = 20};
+#define INITIAL_PLAYER (Player){.speed = 200, .size = 20};
 
 void TickPlayer(Player *player, Level *level);
 void DrawPlayer(Player *player);

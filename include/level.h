@@ -19,6 +19,5 @@ Level *AllocateLevel(int width, int height, int treeCount);
 void InitializeLevel(Level *level);
 void DrawLevelBackground(Level *level); // Draws stuff which should appear behind everything else
 void DrawLevelForeground(Level *level); // Draws stuff which should appear in front of everything else
-
 Rectangle TreeRectangle(Vector2 tree);
 bool CheckCollisionCircleTree(Vector2 pos, float radius, Vector2 tree);

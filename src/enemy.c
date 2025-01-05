@@ -2,16 +2,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "enemy.h"
+#include "enemy_collisions.h"
 #include "raymath.h"
 #include "helpers.h"
 #include "player.h"
 #include "raylib.h"
 #include "debug.h"
-
-#define ENEMY_WIDTH 50
-#define ENEMY_HEIGHT 30
-#define TRIANGLE_WIDTH 20
-#define TRIANGLE_HEIGHT 40
 
 void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
 {
@@ -140,7 +136,6 @@ bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
     return true;
 }
 
-void HandleAllEnemyCollisions(Enemy *allEnemies, int enemyCount, Level *level);
 void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player)
 {
     // if 2 seconds has passed, spawn enemy
@@ -151,73 +146,5 @@ void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level
     }
     for (int i = 0; i < enemySpawner->enemyCount; ++i)
         TickEnemy(&enemySpawner->enemies[i], player->pos, enemySpawner->enemies, enemySpawner->enemyCount);
-    HandleAllEnemyCollisions(enemySpawner->enemies, enemySpawner->enemyCount, level);
-}
-
-void HandleCollisionByTurningAwayBothEnemies(Enemy *enemy, Enemy *collided)
-{
-    Vector2 delta = Vector2Subtract(enemy->pos, collided->pos);
-    Vector2 invDelta = Vector2Scale(delta, -1);
-    // overlap is same for both
-    float totalSize = enemy->size + collided->size;
-    float overlap = (totalSize - Vector2Length(delta)) / totalSize; // lower => more overlap
-
-    float rotationSpeed = 4 * ENEMY_ROTATION_SPEED * GetFrameTime() * overlap;
-    // float ratio = (collided->size / enemy->size) * (collided->size / enemy->size);
-    float ratio = (collided->size / (collided->size + enemy->size));
-    enemy->targetVelocity = Vector2Lerp(enemy->targetVelocity, Vector2Normalize(delta), rotationSpeed * ratio);
-    collided->targetVelocity = Vector2Lerp(collided->targetVelocity, Vector2Normalize(invDelta), rotationSpeed * (1 - ratio));
-}
-
-#define ENEMY_INTERNAL_KNOCKBACK 3.0f // higher => bigger jumps, more jitter?
-void HandleEnemyEnemyCollision(Enemy *enemy1, Enemy *enemy2, Vector2 delta, float distanceSqr, float desiredDistance)
-{
-
-    float distance = sqrtf(distanceSqr);
-    float scale = (desiredDistance - distance) * ENEMY_INTERNAL_KNOCKBACK * GetFrameTime();
-    Vector2 totalForce = Vector2Scale(Vector2Normalize(delta), scale);
-    // float ratio = (enemy2->size / enemy1->size) * (enemy2->size / enemy1->size);
-    float ratio = (enemy2->size / (enemy2->size + enemy1->size));
-    if (ratio > 1 || ratio < 0)
-        ratio = ratio;
-    enemy1->pos = Vector2Add(enemy1->pos, Vector2Scale(totalForce, ratio));
-    enemy2->pos = Vector2Add(enemy2->pos, Vector2Scale(totalForce, ratio - 1)); // -1 * (1-ratio) = ratio - 1
-    HandleCollisionByTurningAwayBothEnemies(enemy1, enemy2);
-}
-
-void HandleEnemyTreeCollision(Enemy *enemy, Vector2 tree, Vector2 delta, float distanceSqr, float desiredDistance)
-{
-    float distance = sqrtf(distanceSqr);
-    float overlap = desiredDistance - distance;
-    Vector2 direction = Vector2Normalize(delta);
-    enemy->pos = Vector2Add(enemy->pos, Vector2Scale(direction, overlap));
-    enemy->targetVelocity = Vector2Lerp(enemy->targetVelocity, Vector2Reflect(enemy->targetVelocity, direction), 3 * GetFrameTime());
-}
-
-void HandleAllEnemyCollisions(Enemy *allEnemies, int enemyCount, Level *level)
-{
-    for (int i = 0; i < enemyCount; ++i)
-    {
-        if (!allEnemies[i].spawned)
-            continue;
-        Enemy *curr = &allEnemies[i];
-        for (int j = i + 1; j < enemyCount; ++j)
-        {
-            if (!allEnemies[j].spawned)
-                continue;
-            Vector2 delta = Vector2Subtract(curr->pos, allEnemies[j].pos);
-            float distanceSqr = Vector2LengthSqr(delta);
-            float desiredDistance = curr->size + allEnemies[j].size;
-            if (distanceSqr < desiredDistance * desiredDistance)
-                HandleEnemyEnemyCollision(curr, &allEnemies[j], delta, distanceSqr, desiredDistance);
-        }
-        for (int treeIndex = 0; treeIndex < level->treeCount; ++treeIndex)
-        {
-            Vector2 delta = Vector2Subtract(curr->pos, level->trees[treeIndex]);
-            float distanceSqr = Vector2LengthSqr(delta);
-            float desiredDistance = curr->size + TREE_COLLISION_RADIUS;
-            if (distanceSqr < desiredDistance * desiredDistance)
-                HandleEnemyTreeCollision(curr, level->trees[treeIndex], delta, distanceSqr, desiredDistance);
-        }
-    }
+    HandleAllEnemyCollisions(enemySpawner->enemies, enemySpawner->enemyCount, level, player);
 }
