@@ -42,12 +42,28 @@ void InitializeLevel(Level *level)
 	level->trees = trees;
 }
 
-void DrawLevel(Level *level)
+Rectangle TreeRectangle(Vector2 tree)
+{
+	return (Rectangle){tree.x - TREE_TRUNK_WIDTH / 2, tree.y - TREE_TRUNK_HEIGHT / 2, TREE_TRUNK_WIDTH, TREE_TRUNK_HEIGHT};
+}
+void DrawLevelBackground(Level *level)
 {
 	Vector2 *trees = level->trees;
 	for (int i = 0; i < level->treeCount; i++)
 	{
-		DrawRectangle(trees[i].x, trees[i].y, 20, 40, BROWN);
-		DrawCircle(trees[i].x + 10, trees[i].y - 10, 30, GREEN);
+		DrawRectangleRec(TreeRectangle(trees[i]), BROWN);
 	}
+}
+void DrawLevelForeground(Level *level)
+{
+	Vector2 *trees = level->trees;
+	for (int i = 0; i < level->treeCount; i++)
+	{
+		DrawCircle(trees[i].x, trees[i].y - TREE_TRUNK_HEIGHT + 10, 30, GREEN);
+	}
+}
+
+bool CheckCollisionCircleTree(Vector2 pos, float radius, Vector2 tree)
+{
+	return CheckCollisionCircleRec(pos, radius, TreeRectangle(tree));
 }

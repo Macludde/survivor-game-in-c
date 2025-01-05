@@ -82,7 +82,7 @@ int main()
 		HandleScreenResizing(&camera);
 		HandleDebuggingKeys();
 
-		TickPlayer(&player);
+		TickPlayer(&player, &level);
 		TickCamera(&camera, player.pos);
 		TickEnemySpawner(&enemySpawner, &camera, &level, &player);
 		if (IsKeyPressed(KEY_F1))
@@ -94,9 +94,10 @@ int main()
 
 		BeginMode2D(camera);
 		// draw world
-		DrawLevel(&level);
+		DrawLevelBackground(&level);
 		DrawEnemies(&enemySpawner);
 		DrawPlayer(&player);
+		DrawLevelForeground(&level);
 
 		EndMode2D();
 

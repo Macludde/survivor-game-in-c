@@ -2,6 +2,7 @@
 #include "raymath.h"
 
 #include "player.h"
+#include "level.h"
 
 Vector2 GetDesiredVeloctiy()
 {
@@ -46,9 +47,22 @@ Vector2 GetNewPlayerPos(Player *player)
 	return Vector2Add(player->pos, Vector2Scale(player->velocity, player->speed * frameTime));
 }
 
-void TickPlayer(Player *player)
+void TickPlayer(Player *player, Level *level)
 {
-	player->pos = GetNewPlayerPos(player);
+	Vector2 newPos = GetNewPlayerPos(player);
+	// stop if hitting object
+	for (int i = 0; i < level->treeCount; ++i)
+	{
+		if (CheckCollisionCircles(newPos, player->size, level->trees[i], TREE_COLLISION_RADIUS))
+		{
+			Vector2 delta = Vector2Subtract(newPos, level->trees[i]); // pointing from tree to player
+			Vector2 direction = Vector2Normalize(delta);
+			float distance = Vector2Length(delta);
+			float overlap = player->size + TREE_COLLISION_RADIUS - distance;
+			newPos = Vector2Add(newPos, Vector2Scale(direction, overlap));
+		}
+	}
+	player->pos = newPos;
 }
 
 void DrawPlayer(Player *player)

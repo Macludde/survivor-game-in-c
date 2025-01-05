@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "level.h"
 
 // this scales with player speed
 #define ACCELERATION_SPEED 5.0f
@@ -16,5 +17,5 @@ typedef struct Player
 
 #define INITIAL_PLAYER (Player){.speed = 420, .size = 20};
 
-void TickPlayer(Player *player);
+void TickPlayer(Player *player, Level *level);
 void DrawPlayer(Player *player);
