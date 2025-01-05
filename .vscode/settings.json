@@ -21,5 +21,6 @@
     ],
     "files.watcherExclude": {
         "**/target": true
-    }
+    },
+    "C_Cpp.clang_format_fallbackStyle": "Google"
 }
