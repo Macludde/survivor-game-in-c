@@ -27,13 +27,14 @@ typedef struct EnemySpawner
 {
     Enemy *enemies;
     int enemyCount;
-    int firstFreeSlot;
+    int highestEnemyIndex;
     double lastSpawnTime;
 } EnemySpawner;
 
 void InitializeEnemySpawner(EnemySpawner *enemySpawner);
-void RemoveAllEnemies(EnemySpawner *enemySpawner);
+void RemoveAllEnemies();
 // uses camera and level for spawning, call this after ticking camera
-void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player);
+void TickEnemySpawner(Camera2D *camera, Level *level, Player *player);
 void DrawEnemy(Enemy *enemy);
-void DrawEnemies(EnemySpawner *enemySpawner);
+void DrawEnemies();
+void EnemyTakeDamage(Enemy *enemy, float damage);

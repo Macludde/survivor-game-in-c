@@ -1,7 +1,8 @@
 #include "debug.h"
 #include "raylib.h"
 
-int targetFps = 60;
+#ifdef DEBUG
+int targetFps = 0;
 void HandleDebuggingKeys()
 {
     if (IsKeyPressed(KEY_F10))
@@ -17,3 +18,5 @@ void HandleDebuggingKeys()
         SetTargetFPS(targetFps);
     }
 }
+
+#endif

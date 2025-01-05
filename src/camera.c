@@ -7,7 +7,7 @@ void MoveCameraToPlayer(Camera2D *camera, Vector2 playerPos)
 	camera->target = Vector2Lerp(camera->target, playerPos, CAMERA_MOVEMENT_SPEED * GetFrameTime());
 }
 
-void ZoomCamera(Camera2D *camera)
+void MouseScrollZoom(Camera2D *camera)
 {
 	camera->zoom += ((float)GetMouseWheelMove() * 0.05f);
 	if (camera->zoom > 3.0f)
@@ -19,5 +19,7 @@ void ZoomCamera(Camera2D *camera)
 void TickCamera(Camera2D *camera, Vector2 playerPos)
 {
 	MoveCameraToPlayer(camera, playerPos);
-	ZoomCamera(camera);
+#ifdef DEBUG
+	MouseScrollZoom(camera);
+#endif
 }

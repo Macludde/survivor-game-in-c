@@ -9,6 +9,8 @@
 #include "raylib.h"
 #include "debug.h"
 
+extern EnemySpawner enemySpawner;
+
 void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies, int enemyCount)
 {
     Vector2 direction = Vector2Normalize(Vector2Subtract(target, enemy->pos));
@@ -43,10 +45,11 @@ void DrawEnemy(Enemy *enemy)
 #endif
 }
 
-void DrawEnemies(EnemySpawner *enemySpawner)
+void DrawEnemies()
 {
-    for (int i = 0; i < enemySpawner->enemyCount; i++)
-        DrawEnemy(&enemySpawner->enemies[i]);
+    for (int i = 0; i < enemySpawner.highestEnemyIndex; i++)
+        if (enemySpawner.enemies[i].spawned)
+            DrawEnemy(&enemySpawner.enemies[i]);
 }
 
 void printVector2(Vector2 v, char *name)
@@ -94,57 +97,78 @@ void InitializeEnemySpawner(EnemySpawner *enemySpawner)
     *enemySpawner = (EnemySpawner){
         .enemies = calloc(MAX_ENEMY_COUNT, sizeof(Enemy)),
         .enemyCount = 0,
-        .firstFreeSlot = 0,
         .lastSpawnTime = time_in_seconds(),
     };
 }
 
-void RemoveAllEnemies(EnemySpawner *enemySpawner)
+void RemoveAllEnemies()
 {
     for (int i = 0; i < MAX_ENEMY_COUNT; i++)
     {
-        enemySpawner->enemies[i].spawned = false;
+        enemySpawner.enemies[i].spawned = false;
     }
-    enemySpawner->enemyCount = 0;
-    enemySpawner->firstFreeSlot = 0;
+    enemySpawner.enemyCount = 0;
+    enemySpawner.highestEnemyIndex = 0;
+}
+
+void DecreaseHighestEnemyIndex()
+{
+    for (--enemySpawner.highestEnemyIndex; enemySpawner.highestEnemyIndex > 0; --enemySpawner.highestEnemyIndex)
+    {
+        if (enemySpawner.enemies[enemySpawner.highestEnemyIndex].spawned)
+            break;
+    }
+}
+
+void EnemyTakeDamage(Enemy *enemy, float damage)
+{
+    enemy->health -= damage;
+    if (enemy->health <= 0)
+    {
+        if (enemy == &enemySpawner.enemies[enemySpawner.highestEnemyIndex])
+            DecreaseHighestEnemyIndex();
+        enemy->spawned = false;
+        enemySpawner.enemyCount--;
+    }
 }
 
 // returns true if enemy was spawned, false if not
-bool SpawnEnemy(EnemySpawner *enemySpawner, Camera2D *camera, Level *level)
+bool SpawnEnemy(Camera2D *camera, Level *level)
 {
-    if (enemySpawner->firstFreeSlot >= MAX_ENEMY_COUNT)
+    int firstFreeSlot;
+    for (firstFreeSlot = 0; firstFreeSlot < MAX_ENEMY_COUNT; ++firstFreeSlot)
+    {
+        if (!enemySpawner.enemies[firstFreeSlot].spawned)
+        {
+            break;
+        }
+    }
+    if (firstFreeSlot == MAX_ENEMY_COUNT)
         return false;
-
-    enemySpawner->enemies[enemySpawner->firstFreeSlot] = (Enemy){
+    enemySpawner.enemies[firstFreeSlot] = (Enemy){
         .pos = RandomPointOffScreen(camera, level),
         .targetVelocity = (Vector2){0, 0},
-        .health = 100,
+        .health = 10,
         .spawned = true,
         .size = ENEMY_DEFAULT_SIZE * (GetRandomValue(8, 12) / 10.0f),
         .color = SlightColorVariation(ENEMY_COLOR),
     };
-    enemySpawner->enemyCount++;
-    enemySpawner->firstFreeSlot = enemySpawner->firstFreeSlot + 1;
-    for (int i = enemySpawner->firstFreeSlot; i < MAX_ENEMY_COUNT; ++i)
-    {
-        if (!enemySpawner->enemies[i].spawned)
-        {
-            enemySpawner->firstFreeSlot = i;
-            break;
-        }
-    }
+    enemySpawner.enemyCount++;
+    if (firstFreeSlot > enemySpawner.highestEnemyIndex)
+        enemySpawner.highestEnemyIndex = firstFreeSlot;
     return true;
 }
 
-void TickEnemySpawner(EnemySpawner *enemySpawner, Camera2D *camera, Level *level, Player *player)
+void TickEnemySpawner(Camera2D *camera, Level *level, Player *player)
 {
     // if 2 seconds has passed, spawn enemy
-    if (time_in_seconds() - enemySpawner->lastSpawnTime > 0.2)
+    if (time_in_seconds() - enemySpawner.lastSpawnTime > 1.2)
     {
-        SpawnEnemy(enemySpawner, camera, level);
-        enemySpawner->lastSpawnTime = time_in_seconds();
+        SpawnEnemy(camera, level);
+        enemySpawner.lastSpawnTime = time_in_seconds();
     }
-    for (int i = 0; i < enemySpawner->enemyCount; ++i)
-        TickEnemy(&enemySpawner->enemies[i], player->pos, enemySpawner->enemies, enemySpawner->enemyCount);
-    HandleAllEnemyCollisions(enemySpawner->enemies, enemySpawner->enemyCount, level, player);
+    for (int i = 0; i < enemySpawner.highestEnemyIndex; ++i)
+        if (enemySpawner.enemies[i].spawned)
+            TickEnemy(&enemySpawner.enemies[i], player->pos, enemySpawner.enemies, enemySpawner.enemyCount);
+    HandleAllEnemyCollisions(enemySpawner.enemies, enemySpawner.enemyCount, level, player);
 }

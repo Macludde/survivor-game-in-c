@@ -45,9 +45,9 @@ void EnemyTreeCollision(Enemy *enemy, Vector2 tree, Vector2 delta, float distanc
     enemy->targetVelocity = Vector2Lerp(enemy->targetVelocity, Vector2Reflect(enemy->targetVelocity, direction), 3 * GetFrameTime());
 }
 
-void CollisionsWithOtherEnemies(Enemy *enemy, Enemy *allEnemies, int startAt, int enemyCount)
+void CollisionsWithOtherEnemies(Enemy *enemy, Enemy *allEnemies, int startAt, int highestEnemyIndex)
 {
-    for (int j = startAt; j < enemyCount; ++j)
+    for (int j = startAt; j < highestEnemyIndex; ++j)
     {
         if (!allEnemies[j].spawned)
             continue;
@@ -98,14 +98,14 @@ void CollisionWithPlayer(Enemy *enemy, Player *player)
     }
 }
 
-void HandleAllEnemyCollisions(Enemy *allEnemies, int enemyCount, Level *level, Player *player)
+void HandleAllEnemyCollisions(Enemy *allEnemies, int highestEnemyIndex, Level *level, Player *player)
 {
-    for (int i = 0; i < enemyCount; ++i)
+    for (int i = 0; i < highestEnemyIndex; ++i)
     {
         if (!allEnemies[i].spawned)
             continue;
         Enemy *curr = &allEnemies[i];
-        CollisionsWithOtherEnemies(curr, allEnemies, i + 1, enemyCount);
+        CollisionsWithOtherEnemies(curr, allEnemies, i + 1, highestEnemyIndex);
         CollisionsWithTrees(curr, level);
         CollisionWithPlayer(curr, player);
     }
