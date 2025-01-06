@@ -54,8 +54,6 @@ int main() {
       .height = 1000,
       .treeCount = 20,
   };
-  // Level *level = AllocateLevel(1000, 1000, 20); // I chose to keep the level
-  // on the stack for now
   InitializeLevel(&level);
 
   InitializeEnemySpawner(&enemySpawner);
@@ -75,9 +73,9 @@ int main() {
     HandleDebuggingKeys();
     if (IsKeyPressed(KEY_F1)) RemoveAllEnemies();
 #endif
-    TickPlayer(&player, &level);
+    TickPlayer(&player);
     TickCamera(&camera, player.pos);
-    TickEnemySpawner(&camera, &level, &player);
+    TickEnemySpawner(&camera, &player);
 
     // drawing
     BeginDrawing();

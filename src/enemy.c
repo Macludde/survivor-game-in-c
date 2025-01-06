@@ -12,6 +12,7 @@
 #include "raymath.h"
 
 extern EnemySpawner enemySpawner;
+extern Level level;
 
 void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies,
                int enemyCount) {
@@ -60,14 +61,14 @@ void printVector2(Vector2 v, char *name) {
 }
 // generate random point just outside camera, 100 units away from camera bounds,
 // and within level bounds
-Vector2 RandomPointJustOffScreen(Camera2D *camera, Level *level) {
+Vector2 RandomPointJustOffScreen(Camera2D *camera) {
   // get camera bounds, given GetScreenToWorld2D
   Vector2 cameraTopLeft = GetScreenToWorld2D((Vector2){0, 0}, *camera);
   Vector2 cameraBottomRight = GetScreenToWorld2D(
       (Vector2){GetScreenWidth(), GetScreenHeight()}, *camera);
   // get level bounds
-  Vector2 levelTopLeft = {-level->width, -level->height};
-  Vector2 levelBottomRight = {level->width, level->height};
+  Vector2 levelTopLeft = {-level.width, -level.height};
+  Vector2 levelBottomRight = {level.width, level.height};
 
   Vector2 clampedTopLeft = Vector2Clamp(
       Vector2SubtractValue(cameraTopLeft, 100), levelTopLeft, levelBottomRight);
@@ -91,12 +92,12 @@ Vector2 RandomPointJustOffScreen(Camera2D *camera, Level *level) {
   return randomPoint;
 }
 
-Vector2 RandomPointOffScreen(Camera2D *camera, Level *level) {
-  Vector2 randomPoint = RandomPointJustOffScreen(camera, level);
+Vector2 RandomPointOffScreen(Camera2D *camera) {
+  Vector2 randomPoint = RandomPointJustOffScreen(camera);
 }
 
-void InitializeEnemySpawner(EnemySpawner *enemySpawner) {
-  *enemySpawner = (EnemySpawner){
+void InitializeEnemySpawner(EnemySpawner *enemySpawnerToInit) {
+  *enemySpawnerToInit = (EnemySpawner){
       .enemies = calloc(MAX_ENEMY_COUNT, sizeof(Enemy)),
       .enemyCount = 0,
       .lastSpawnTime = time_in_seconds(),
@@ -129,7 +130,7 @@ void EnemyTakeDamage(Enemy *enemy, float damage) {
 }
 
 // returns true if enemy was spawned, false if not
-bool SpawnEnemy(Camera2D *camera, Level *level) {
+bool SpawnEnemy(Camera2D *camera) {
   int firstFreeSlot;
   for (firstFreeSlot = 0; firstFreeSlot < MAX_ENEMY_COUNT; ++firstFreeSlot) {
     if (!enemySpawner.enemies[firstFreeSlot].spawned) {
@@ -138,7 +139,7 @@ bool SpawnEnemy(Camera2D *camera, Level *level) {
   }
   if (firstFreeSlot == MAX_ENEMY_COUNT) return false;
   enemySpawner.enemies[firstFreeSlot] = (Enemy){
-      .pos = RandomPointOffScreen(camera, level),
+      .pos = RandomPointOffScreen(camera),
       .targetVelocity = (Vector2){0, 0},
       .health = 10,
       .spawned = true,
@@ -151,16 +152,16 @@ bool SpawnEnemy(Camera2D *camera, Level *level) {
   return true;
 }
 
-void TickEnemySpawner(Camera2D *camera, Level *level, Player *player) {
+void TickEnemySpawner(Camera2D *camera, Player *player) {
   // if 2 seconds has passed, spawn enemy
   if (time_in_seconds() - enemySpawner.lastSpawnTime > 1.2) {
-    SpawnEnemy(camera, level);
+    SpawnEnemy(camera);
     enemySpawner.lastSpawnTime = time_in_seconds();
   }
   for (int i = 0; i < enemySpawner.highestEnemyIndex; ++i)
     if (enemySpawner.enemies[i].spawned)
       TickEnemy(&enemySpawner.enemies[i], player->pos, enemySpawner.enemies,
                 enemySpawner.enemyCount);
-  HandleAllEnemyCollisions(enemySpawner.enemies, enemySpawner.enemyCount, level,
+  HandleAllEnemyCollisions(enemySpawner.enemies, enemySpawner.enemyCount,
                            player);
 }

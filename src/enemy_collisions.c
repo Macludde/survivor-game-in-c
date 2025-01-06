@@ -5,6 +5,8 @@
 #include "raylib.h"
 #include "raymath.h"
 
+extern Level level;
+
 void TurnAwayEnemiesFromEachother(Enemy *enemy, Enemy *collided) {
   Vector2 delta = Vector2Subtract(enemy->pos, collided->pos);
   Vector2 invDelta = Vector2Scale(delta, -1);
@@ -69,13 +71,13 @@ void CollisionsWithOtherEnemies(Enemy *enemy, Enemy *allEnemies, int startAt,
   }
 }
 
-void CollisionsWithTrees(Enemy *enemy, Level *level) {
-  for (int treeIndex = 0; treeIndex < level->treeCount; ++treeIndex) {
-    Vector2 delta = Vector2Subtract(enemy->pos, level->trees[treeIndex]);
+void CollisionsWithTrees(Enemy *enemy) {
+  for (int treeIndex = 0; treeIndex < level.treeCount; ++treeIndex) {
+    Vector2 delta = Vector2Subtract(enemy->pos, level.trees[treeIndex]);
     float distanceSqr = Vector2LengthSqr(delta);
     float desiredDistance = enemy->size + TREE_COLLISION_RADIUS;
     if (distanceSqr < desiredDistance * desiredDistance)
-      EnemyTreeCollision(enemy, level->trees[treeIndex], delta, distanceSqr,
+      EnemyTreeCollision(enemy, level.trees[treeIndex], delta, distanceSqr,
                          desiredDistance);
   }
 }
@@ -110,12 +112,12 @@ void CollisionWithPlayer(Enemy *enemy, Player *player) {
 }
 
 void HandleAllEnemyCollisions(Enemy *allEnemies, int highestEnemyIndex,
-                              Level *level, Player *player) {
+                              Player *player) {
   for (int i = 0; i < highestEnemyIndex; ++i) {
     if (!allEnemies[i].spawned) continue;
     Enemy *curr = &allEnemies[i];
     CollisionsWithOtherEnemies(curr, allEnemies, i + 1, highestEnemyIndex);
-    CollisionsWithTrees(curr, level);
+    CollisionsWithTrees(curr);
     CollisionWithPlayer(curr, player);
   }
 }
