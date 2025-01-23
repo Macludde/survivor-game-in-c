@@ -1,22 +1,26 @@
 #pragma once
 #include "level.h"
+#include "physics.h"
 #include "player.h"
 #include "raylib.h"
 
 // this scales with player speed
 #define MAX_ENEMY_COUNT 10
 #define ENEMY_COLOR RED
-#define ENEMY_ROTATION_SPEED 2.0f
-#define ENEMY_MOVEMENT_SPEED 300.0f
+#define ENEMY_MOVEMENT_SPEED 100.0f
+#define ENEMY_MAX_SPEED (ENEMY_MOVEMENT_SPEED / FRICTION_COEFFICIENT)
+// 1/ENEMY_ROTATION_SPEED = seconds to turn at max speed
+#define ENEMY_ROTATION_SPEED 5
+#define ENEMY_ROTATION_SPEED_VELOCITY_RELATIVE \
+  ENEMY_ROTATION_SPEED *ENEMY_MAX_SPEED
 
 #define ENEMY_DEFAULT_SIZE 40
 
 typedef struct Enemy {
-  Vector2 pos;
+  PhysicsBody body;
+  // in radians
+  float rotation;
   // radius
-  float size;
-  Vector2 targetVelocity;
-  Vector2 velocity;
   float health;
   bool spawned;
   Color color;
@@ -36,3 +40,4 @@ void TickEnemySpawner(Camera2D *camera, Player *player);
 void DrawEnemy(Enemy *enemy);
 void DrawEnemies();
 void EnemyTakeDamage(Enemy *enemy, float damage);
+float GetEnemyRotationSpeedGivenVelocity(Vector2 velocity);

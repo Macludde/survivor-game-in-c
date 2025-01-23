@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "enemy_collisions.h"
 #include "helpers.h"
+#include "physics.h"
 #include "player.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -14,66 +15,79 @@
 extern EnemySpawner enemySpawner;
 extern Level level;
 
+float GetEnemyRotationSpeedGivenVelocity(Vector2 velocity) {
+  float currentSpeed = Vector2Length(velocity);
+  float rotationSpeed =
+      ENEMY_ROTATION_SPEED_VELOCITY_RELATIVE /
+      (currentSpeed < ENEMY_MOVEMENT_SPEED ? ENEMY_MOVEMENT_SPEED
+                                           : currentSpeed);
+  if (rotationSpeed > ENEMY_ROTATION_SPEED) return ENEMY_ROTATION_SPEED;
+  return rotationSpeed;
+}
+
 void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies,
                int enemyCount) {
-  Vector2 direction = Vector2Normalize(Vector2Subtract(target, enemy->pos));
-  enemy->targetVelocity = Vector2Lerp(enemy->targetVelocity, direction,
-                                      ENEMY_ROTATION_SPEED * GetFrameTime());
-  enemy->velocity = Vector2Lerp(enemy->velocity, enemy->targetVelocity,
-                                ENEMY_ROTATION_SPEED * GetFrameTime());
-  enemy->pos = Vector2Add(
-      enemy->pos,
-      Vector2Scale(enemy->velocity, ENEMY_MOVEMENT_SPEED * GetFrameTime()));
+  // calculate angle to target
+  Vector2 targetDelta =
+      Vector2Normalize(Vector2Subtract(target, enemy->body.pos));
+  float rotationSpeed =
+      GetEnemyRotationSpeedGivenVelocity(enemy->body.velocity);
+  enemy->rotation = LerpRotationAngle(enemy->rotation, targetDelta,
+                                      rotationSpeed * GetFrameTime());
 
-  int iterations = 0;
-  Enemy *collided;
-  ++iterations;
-  // collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
-  // for (int i = 0; collided != NULL && i < 10; i++)
-  // {
-  //     HandleEnemiesCollision(enemy, collided, allEnemies, enemyCount);
-  //     collided = CollidesWithAnyEnemy(enemy, allEnemies, enemyCount);
-  // }
+  Vector2 force = Vector2Scale(Vector2Rotate((Vector2){1, 0}, enemy->rotation),
+                               ENEMY_MOVEMENT_SPEED);
+
+  ApplyAcceleration(&enemy->body, force);
+  MoveBody(&enemy->body);
 }
 
 void DrawEnemyWithRotation(Enemy *enemy) {
-  Vector2 rotateTowards = enemy->targetVelocity;
-  float angle = atan2(rotateTowards.y, rotateTowards.x) * RAD2DEG;
-  Rectangle rect = {enemy->pos.x, enemy->pos.y, enemy->size * 2, enemy->size};
-  DrawRectanglePro(rect, (Vector2){enemy->size, enemy->size / 2}, angle,
-                   enemy->color);
+  float angle = enemy->rotation * RAD2DEG;
+  Rectangle rect = {enemy->body.pos.x, enemy->body.pos.y,
+                    enemy->body.radius * 2, enemy->body.radius};
+  DrawRectanglePro(rect, (Vector2){enemy->body.radius, enemy->body.radius / 2},
+                   angle, enemy->color);
 }
 void DrawEnemy(Enemy *enemy) {
   DrawEnemyWithRotation(enemy);
 #ifdef DEBUG_SHOW_HITBOXES
-  DrawCircleLinesV(enemy->pos, enemy->size, PINK);
-  DrawCircleLinesV(enemy->pos, 1, PINK);
+  DrawCircleLinesV(enemy->body.pos, enemy->body.radius, PINK);
+  DrawCircleLinesV(enemy->body.pos, 1, PINK);
 #endif
 }
 
 void DrawEnemies() {
-  for (int i = 0; i < enemySpawner.highestEnemyIndex; i++)
+  for (int i = 0; i < enemySpawner.highestEnemyIndex + 1; i++)
     if (enemySpawner.enemies[i].spawned) DrawEnemy(&enemySpawner.enemies[i]);
 }
 
 void printVector2(Vector2 v, char *name) {
   printf("%s: %f, %f\n", name, v.x, v.y);
 }
+
+#define MIN_DISTANCE_TO_CAMERA 100
+#define MAX_DISTANCE_TO_CAMERA 100
 // generate random point just outside camera, 100 units away from camera bounds,
 // and within level bounds
 Vector2 RandomPointJustOffScreen(Camera2D *camera) {
   // get camera bounds, given GetScreenToWorld2D
-  Vector2 cameraTopLeft = GetScreenToWorld2D((Vector2){0, 0}, *camera);
-  Vector2 cameraBottomRight = GetScreenToWorld2D(
-      (Vector2){GetScreenWidth(), GetScreenHeight()}, *camera);
+  Vector2 cameraTopLeft = Vector2SubtractValue(
+      GetScreenToWorld2D((Vector2){0, 0}, *camera), MIN_DISTANCE_TO_CAMERA);
+  Vector2 cameraBottomRight = Vector2AddValue(
+      GetScreenToWorld2D((Vector2){GetScreenWidth(), GetScreenHeight()},
+                         *camera),
+      MIN_DISTANCE_TO_CAMERA);
   // get level bounds
   Vector2 levelTopLeft = {-level.width, -level.height};
   Vector2 levelBottomRight = {level.width, level.height};
 
-  Vector2 clampedTopLeft = Vector2Clamp(
-      Vector2SubtractValue(cameraTopLeft, 100), levelTopLeft, levelBottomRight);
-  Vector2 clampedBottomRight = Vector2Clamp(
-      Vector2AddValue(cameraBottomRight, 100), levelTopLeft, levelBottomRight);
+  Vector2 clampedTopLeft =
+      Vector2Clamp(Vector2SubtractValue(cameraTopLeft, MAX_DISTANCE_TO_CAMERA),
+                   levelTopLeft, levelBottomRight);
+  Vector2 clampedBottomRight =
+      Vector2Clamp(Vector2AddValue(cameraBottomRight, MAX_DISTANCE_TO_CAMERA),
+                   levelTopLeft, levelBottomRight);
   Vector2 randomPoint = {0, 0};
   int iterations = 0;
   do {
@@ -92,16 +106,17 @@ Vector2 RandomPointJustOffScreen(Camera2D *camera) {
   return randomPoint;
 }
 
-Vector2 RandomPointOffScreen(Camera2D *camera) {
-  Vector2 randomPoint = RandomPointJustOffScreen(camera);
+Vector2 RandomPointOffScreen(Camera2D *camera, Level *level) {
+  Vector2 randomPoint = RandomPointJustOffScreen(camera, level);
+  return randomPoint;
 }
 
 void InitializeEnemySpawner(EnemySpawner *enemySpawnerToInit) {
-  *enemySpawnerToInit = (EnemySpawner){
-      .enemies = calloc(MAX_ENEMY_COUNT, sizeof(Enemy)),
-      .enemyCount = 0,
-      .lastSpawnTime = time_in_seconds(),
-  };
+  *enemySpawnerToInit =
+      (EnemySpawner){.enemies = calloc(MAX_ENEMY_COUNT, sizeof(Enemy)),
+                     .enemyCount = 0,
+                     .lastSpawnTime = time_in_seconds(),
+                     .highestEnemyIndex = -1};
 }
 
 void RemoveAllEnemies() {
@@ -109,7 +124,7 @@ void RemoveAllEnemies() {
     enemySpawner.enemies[i].spawned = false;
   }
   enemySpawner.enemyCount = 0;
-  enemySpawner.highestEnemyIndex = 0;
+  enemySpawner.highestEnemyIndex = -1;
 }
 
 void DecreaseHighestEnemyIndex() {
@@ -138,12 +153,18 @@ bool SpawnEnemy(Camera2D *camera) {
     }
   }
   if (firstFreeSlot == MAX_ENEMY_COUNT) return false;
+  float size = ENEMY_DEFAULT_SIZE * (GetRandomValue(8, 12) / 10.0f);
   enemySpawner.enemies[firstFreeSlot] = (Enemy){
-      .pos = RandomPointOffScreen(camera),
-      .targetVelocity = (Vector2){0, 0},
+      .body =
+          (PhysicsBody){
+              .pos = RandomPointOffScreen(camera, level),
+              .velocity = (Vector2){0, 0},
+              .acceleration = (Vector2){0, 0},
+              .mass = size * size,
+              .radius = size,
+          },
       .health = 10,
       .spawned = true,
-      .size = ENEMY_DEFAULT_SIZE * (GetRandomValue(8, 12) / 10.0f),
       .color = SlightColorVariation(ENEMY_COLOR),
   };
   enemySpawner.enemyCount++;
@@ -158,10 +179,10 @@ void TickEnemySpawner(Camera2D *camera, Player *player) {
     SpawnEnemy(camera);
     enemySpawner.lastSpawnTime = time_in_seconds();
   }
-  for (int i = 0; i < enemySpawner.highestEnemyIndex; ++i)
+  for (int i = 0; i < enemySpawner.highestEnemyIndex + 1; ++i)
     if (enemySpawner.enemies[i].spawned)
-      TickEnemy(&enemySpawner.enemies[i], player->pos, enemySpawner.enemies,
-                enemySpawner.enemyCount);
+      TickEnemy(&enemySpawner.enemies[i], player->body.pos,
+                enemySpawner.enemies, enemySpawner.enemyCount);
   HandleAllEnemyCollisions(enemySpawner.enemies, enemySpawner.enemyCount,
                            player);
 }

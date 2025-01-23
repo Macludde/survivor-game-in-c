@@ -1,10 +1,12 @@
 #pragma once
 
 #define TREE_COLLISION_RADIUS 20
+#define TREE_MASS 1000
 #define TREE_TRUNK_WIDTH 20
 #define TREE_TRUNK_HEIGHT 40
 #include <stdbool.h>
 
+#include "physics.h"
 #include "raylib.h"
 
 typedef struct Level {
@@ -25,3 +27,4 @@ void DrawLevelForeground(Level *level);  // Draws stuff which should appear in
                                          // front of everything else
 Rectangle TreeRectangle(Vector2 tree);
 bool CheckCollisionCircleTree(Vector2 pos, float radius, Vector2 tree);
+PhysicsBody GetTreeBody(Vector2 tree);

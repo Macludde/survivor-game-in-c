@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "debug.h"
+#include "physics.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -61,4 +62,14 @@ void DrawLevelForeground(Level *level) {
 
 bool CheckCollisionCircleTree(Vector2 pos, float radius, Vector2 tree) {
   return CheckCollisionCircleRec(pos, radius, TreeRectangle(tree));
+}
+
+PhysicsBody GetTreeBody(Vector2 tree) {
+  return (PhysicsBody){
+      .pos = tree,
+      .velocity = (Vector2){0, 0},
+      .acceleration = (Vector2){0, 0},
+      .mass = TREE_MASS,
+      .radius = TREE_COLLISION_RADIUS,
+  };
 }

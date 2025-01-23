@@ -20,14 +20,14 @@ Level level;
 EnemySpawner enemySpawner;
 Camera2D camera;
 
-void HandleScreenResizing(Camera2D *camera) {
+void HandleScreenResizing() {
   static int screenWidth;
   static int screenHeight;
   if (IsKeyPressed(KEY_F11)) ToggleFullscreen();
   if (GetScreenWidth() != screenWidth || GetScreenHeight() != screenHeight) {
     screenWidth = GetScreenWidth();
     screenHeight = GetScreenHeight();
-    camera->offset = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
+    camera.offset = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
   }
 }
 
@@ -45,7 +45,7 @@ int main() {
   Player player = InitialPlayer();
   camera = (Camera2D){
       .offset = {DEFAULT_SCREEN_WIDTH / 2.0f, DEFAULT_SCREEN_HEIGHT / 2.0f},
-      .target = player.pos,
+      .target = player.body.pos,
       .rotation = 0.0f,
       .zoom = 1.0f,
   };
@@ -68,13 +68,13 @@ int main() {
   while (!WindowShouldClose())  // run the loop untill the user presses ESCAPE
                                 // or presses the Close button on the window
   {
-    HandleScreenResizing(&camera);
+    HandleScreenResizing();
 #ifdef DEBUG
     HandleDebuggingKeys();
     if (IsKeyPressed(KEY_F1)) RemoveAllEnemies();
 #endif
     TickPlayer(&player);
-    TickCamera(&camera, player.pos);
+    TickCamera(&camera, player.body.pos);
     TickEnemySpawner(&camera, &player);
 
     // drawing

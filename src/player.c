@@ -3,6 +3,7 @@
 #include "enemy.h"
 #include "helpers.h"
 #include "level.h"
+#include "physics.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "weapon.h"
@@ -13,8 +14,15 @@ extern Level level;
 
 Player InitialPlayer() {
   return (Player){
+      .body =
+          (PhysicsBody){
+              .pos = Vector2Zero(),
+              .velocity = Vector2Zero(),
+              .acceleration = Vector2Zero(),
+              .mass = 400,
+              .radius = 20,
+          },
       .speed = 200,
-      .size = 20,
       .weapon = InitialWeapon(),
   };
 }
@@ -34,43 +42,28 @@ Vector2 GetDesiredVeloctiy() {
   return Vector2Normalize(delta);
 }
 
-Vector2 GetNewPlayerPos(Player *player) {
-  Vector2 desiredVelocity = GetDesiredVeloctiy();
-  float frameTime = GetFrameTime();
-  if (Vector2Equals(player->velocity, desiredVelocity)) {
-  } else if (Vector2DistanceSqr(player->velocity, desiredVelocity) < 0.01)
-    player->velocity = desiredVelocity;
-  else {
-    float lerpAmount = Clamp(Vector2LengthSqr(desiredVelocity) == 0
-                                 ? RETARDATION_SPEED * frameTime
-                                 : ACCELERATION_SPEED * frameTime,
-                             0, 1);
-    player->velocity =
-        Vector2Lerp(player->velocity, desiredVelocity, lerpAmount);
-  }
-  return Vector2Add(player->pos,
-                    Vector2Scale(player->velocity, player->speed * frameTime));
+void MovePlayer(Player *player) {
+  Vector2 force = Vector2Scale(GetDesiredVeloctiy(), player->speed);
+  if (Vector2LengthSqr(force) != 0) ApplyAcceleration(&player->body, force);
+  MoveBodyWithWeights(&player->body, ACCELERATION_SPEED, RETARDATION_SPEED);
 }
 
 void TickPlayer(Player *player) {
-  Vector2 newPos = GetNewPlayerPos(player);
+  MovePlayer(player);
   // stop if hitting object
   for (int i = 0; i < level.treeCount; ++i) {
-    if (CheckCollisionCircles(newPos, player->size, level.trees[i],
-                              TREE_COLLISION_RADIUS)) {
-      Vector2 delta = Vector2Subtract(
-          newPos, level.trees[i]);  // pointing from tree to player
-      Vector2 direction = Vector2Normalize(delta);
-      float distance = Vector2Length(delta);
-      float overlap = player->size + TREE_COLLISION_RADIUS - distance;
-      newPos = Vector2Add(newPos, Vector2Scale(direction, overlap));
+    PhysicsBody treeBody = GetTreeBody(level.trees[i]);
+    if (CheckCollision(player->body, treeBody)) {
+      RigidCollision(&player->body, &treeBody);
     }
   }
-  player->pos = newPos;
-  TickWeapon(&player->weapon, player->pos);
+  TickWeapon(&player->weapon, player->body.pos);
 }
 
 void DrawPlayer(Player *player) {
-  DrawCircleV(player->pos, player->size, PLAYER_COLOR);
-  DrawWeapon(&player->weapon);
+  DrawCircleV(player->body.pos, player->body.radius, PLAYER_COLOR);
+  for (int i = 0; i < player->weapon.bulletCapacity; ++i) {
+    if (player->weapon.bullets[i].spawned)
+      DrawBullet(&player->weapon.bullets[i]);
+  }
 }
