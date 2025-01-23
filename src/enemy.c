@@ -12,6 +12,7 @@
 #include "raymath.h"
 
 extern EnemySpawner enemySpawner;
+extern Level level;
 
 void TickEnemy(Enemy* enemy, Vector2 target, Enemy* allEnemies,
     int enemyCount) {
