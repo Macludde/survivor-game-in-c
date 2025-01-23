@@ -49,8 +49,8 @@ void DrawEnemyWithRotation(Enemy *enemy) {
   DrawRectanglePro(rect, (Vector2){enemy->body.radius, enemy->body.radius / 2},
                    angle, enemy->color);
 }
-void DrawEnemy(Enemy *enemy) {
-  DrawEnemyWithRotation(enemy);
+void DrawEnemy(Enemy* enemy) {
+    DrawEnemyWithRotation(enemy);
 #ifdef DEBUG_SHOW_HITBOXES
   DrawCircleLinesV(enemy->body.pos, enemy->body.radius, PINK);
   DrawCircleLinesV(enemy->body.pos, 1, PINK);
@@ -62,8 +62,8 @@ void DrawEnemies() {
     if (enemySpawner.enemies[i].spawned) DrawEnemy(&enemySpawner.enemies[i]);
 }
 
-void printVector2(Vector2 v, char *name) {
-  printf("%s: %f, %f\n", name, v.x, v.y);
+void printVector2(Vector2 v, char* name) {
+    printf("%s: %f, %f\n", name, v.x, v.y);
 }
 
 #define MIN_DISTANCE_TO_CAMERA 100
@@ -128,28 +128,29 @@ void RemoveAllEnemies() {
 }
 
 void DecreaseHighestEnemyIndex() {
-  for (--enemySpawner.highestEnemyIndex; enemySpawner.highestEnemyIndex > 0;
-       --enemySpawner.highestEnemyIndex) {
-    if (enemySpawner.enemies[enemySpawner.highestEnemyIndex].spawned) break;
-  }
+    for (--enemySpawner.highestEnemyIndex; enemySpawner.highestEnemyIndex > 0;
+        --enemySpawner.highestEnemyIndex) {
+        if (enemySpawner.enemies[enemySpawner.highestEnemyIndex].spawned) break;
+    }
 }
 
-void EnemyTakeDamage(Enemy *enemy, float damage) {
-  enemy->health -= damage;
-  if (enemy->health <= 0) {
-    if (enemy == &enemySpawner.enemies[enemySpawner.highestEnemyIndex])
-      DecreaseHighestEnemyIndex();
-    enemy->spawned = false;
-    enemySpawner.enemyCount--;
-  }
+void EnemyTakeDamage(Enemy* enemy, float damage) {
+    enemy->health -= damage;
+    if (enemy->health <= 0) {
+        if (enemy == &enemySpawner.enemies[enemySpawner.highestEnemyIndex])
+            DecreaseHighestEnemyIndex();
+        enemy->spawned = false;
+        enemySpawner.enemyCount--;
+    }
 }
 
 // returns true if enemy was spawned, false if not
-bool SpawnEnemy(Camera2D *camera) {
-  int firstFreeSlot;
-  for (firstFreeSlot = 0; firstFreeSlot < MAX_ENEMY_COUNT; ++firstFreeSlot) {
-    if (!enemySpawner.enemies[firstFreeSlot].spawned) {
-      break;
+bool SpawnEnemy(Camera2D* camera, Level* level) {
+    int firstFreeSlot;
+    for (firstFreeSlot = 0; firstFreeSlot < MAX_ENEMY_COUNT; ++firstFreeSlot) {
+        if (!enemySpawner.enemies[firstFreeSlot].spawned) {
+            break;
+        }
     }
   }
   if (firstFreeSlot == MAX_ENEMY_COUNT) return false;
