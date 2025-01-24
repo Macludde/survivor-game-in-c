@@ -10,6 +10,8 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "resource_dir.h"  // utility header for SearchAndSetResourceDir
+#define STB_DS_IMPLEMENTATION
+#include "lib/stb_ds.h"
 
 #define DEFAULT_SCREEN_WIDTH 1280
 #define DEFAULT_SCREEN_HEIGHT 800
@@ -42,19 +44,20 @@ void SetupWindow() {
 
 int main() {
   SetupWindow();
-  Player player = InitialPlayer();
-  camera = (Camera2D){
-      .offset = {DEFAULT_SCREEN_WIDTH / 2.0f, DEFAULT_SCREEN_HEIGHT / 2.0f},
-      .target = player.entity.body.pos,
-      .rotation = 0.0f,
-      .zoom = 1.0f,
-  };
   level = (Level){
       .width = 1000,
       .height = 1000,
       .treeCount = 20,
   };
   InitializeLevel(&level);
+  Player player = InitialPlayer();
+  AddEntity(&player.entity);
+  camera = (Camera2D){
+      .offset = {DEFAULT_SCREEN_WIDTH / 2.0f, DEFAULT_SCREEN_HEIGHT / 2.0f},
+      .target = player.entity.body.pos,
+      .rotation = 0.0f,
+      .zoom = 1.0f,
+  };
 
   InitializeEnemySpawner(&enemySpawner);
   assert(sizeof(player) <= 1024);
@@ -86,10 +89,10 @@ int main() {
 
     BeginMode2D(camera);
     // draw world
-    DrawLevelBackground(&level);
+    DrawLevelBackground();
     DrawEnemies();
     DrawPlayer(&player);
-    DrawLevelForeground(&level);
+    DrawLevelForeground();
 
     EndMode2D();
 

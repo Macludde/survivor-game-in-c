@@ -13,16 +13,14 @@
 #include "physics.h"
 #include "raylib.h"
 
-typedef struct Tree {
-  Vector2 pos;
-  float health;
-} Tree;
+typedef Entity Tree;
 
 typedef struct Level {
   int width;
   int height;
   int treeCount;
   Tree *trees;
+  Entity **allEntities;  // dynamic array of entity pointers
 } Level;
 
 Level *AllocateLevel(int width, int height, int treeCount);
@@ -30,11 +28,14 @@ Level *AllocateLevel(int width, int height, int treeCount);
  * Assumes level already has width, height and treeCount set
  */
 void InitializeLevel(Level *level);
-void DrawLevelBackground(
-    Level *level);  // Draws stuff which should appear behind everything else
-void DrawLevelForeground(Level *level);  // Draws stuff which should appear in
-                                         // front of everything else
+void DrawLevelBackground();  // Draws stuff which should appear behind
+                             // everything else
+void DrawLevelForeground();  // Draws stuff which should appear in
+                             // front of everything else
 Rectangle TreeRectangle(Tree tree);
 bool CheckCollisionCircleTree(Vector2 pos, float radius, Tree tree);
 PhysicsBody GetTreeBody(Tree tree);
 Entity GetTreeEntity(Tree tree);
+
+void AddEntity(Entity *entity);
+void RemoveEntity(Entity *entity);

@@ -123,6 +123,7 @@ void InitializeEnemySpawner(EnemySpawner *enemySpawnerToInit) {
 void RemoveAllEnemies() {
   for (int i = 0; i < MAX_ENEMY_COUNT; i++) {
     enemySpawner.enemies[i].spawned = false;
+    RemoveEntity(&enemySpawner.enemies[i].entity);
   }
   enemySpawner.enemyCount = 0;
   enemySpawner.highestEnemyIndex = -1;
@@ -139,6 +140,7 @@ void HandleEnemyDeath(Enemy *enemy) {
   if (enemy == &enemySpawner.enemies[enemySpawner.highestEnemyIndex])
     DecreaseHighestEnemyIndex();
   enemy->spawned = false;
+  RemoveEntity(&enemy->entity);
   enemySpawner.enemyCount--;
 }
 
@@ -172,6 +174,7 @@ bool SpawnEnemy(Camera2D *camera) {
       .spawned = true,
       .color = SlightColorVariation(ENEMY_COLOR),
   };
+  AddEntity(&enemySpawner.enemies[firstFreeSlot].entity);
   enemySpawner.enemyCount++;
   if (firstFreeSlot > enemySpawner.highestEnemyIndex)
     enemySpawner.highestEnemyIndex = firstFreeSlot;

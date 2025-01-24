@@ -45,6 +45,7 @@ bool BulletEnemyCollisions(Bullet *bullet, Weapon *weapon) {
       return true;
     }
   }
+  return false;
 }
 
 bool BulletTreeCollisions(Bullet *bullet) {
