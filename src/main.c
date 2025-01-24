@@ -71,7 +71,10 @@ int main() {
     HandleScreenResizing();
 #ifdef DEBUG
     HandleDebuggingKeys();
-    if (IsKeyPressed(KEY_F1)) RemoveAllEnemies();
+    if (IsKeyPressed(KEY_F1)) {
+      RemoveAllEnemies();
+      player.entity.body.pos = Vector2Zero();
+    }
 #endif
     TickPlayer(&player);
     TickCamera(&camera, player.entity.body.pos);

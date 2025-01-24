@@ -96,8 +96,7 @@ void ElasticCollision(PhysicsBody *body1, PhysicsBody *body2) {
   Vector2 delta = Vector2Subtract(body1->pos, body2->pos);
   Vector2 awayDirection = Vector2Normalize(delta);
   float nearness = 1 - Vector2Length(delta) / (body1->radius + body2->radius);
-  float force =
-      nearness * body1->mass * body2->mass / (body1->mass + body2->mass);
+  float force = nearness / (body1->mass + body2->mass);
   ApplyAcceleration(body1, Vector2Scale(awayDirection, force * body2->mass));
   ApplyAcceleration(body2, Vector2Scale(awayDirection, -force * body1->mass));
 }
