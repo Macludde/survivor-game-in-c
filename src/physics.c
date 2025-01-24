@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include "entity.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -53,6 +54,7 @@ void ApplyAcceleration(PhysicsBody *body, Vector2 forceByMass) {
   body->acceleration = Vector2Add(body->acceleration, forceByMass);
 }
 
+#define BOUNCINESS 1
 // mass = 0 means it won't change velocity
 void RigidCollision(PhysicsBody *body1, PhysicsBody *body2) {
   // Calculate collision point

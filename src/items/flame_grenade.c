@@ -5,6 +5,7 @@
 PlayerItem *FlameGrenade;
 
 void InitializeItem() { FlameGrenade = calloc(1, sizeof(PlayerItem)); }
+void FreeItem() { free(FlameGrenade); }
 
 void TickFlame() {
   // damage everything in circle, enemies and player

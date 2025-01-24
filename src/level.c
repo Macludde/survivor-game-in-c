@@ -29,7 +29,7 @@ void InitializeLevel(Level *level) {
     printf("Failed to allocate memory for trees\n");
     exit(1);
   }
-  arrsetlen(
+  arrsetcap(
       level->allEntities,
       level->treeCount + 100);  // player + enemies as well. We can afford
                                 // using a little too much memory, we want to
@@ -58,6 +58,7 @@ void InitializeLevel(Level *level) {
     trees[i].body.acceleration = Vector2Zero();
     retries = 0;
     trees[i].health = 100;
+    trees[i].team = NEUTRAL;
     arrput(level->allEntities, &trees[i]);
   }
   level->trees = trees;
@@ -74,9 +75,6 @@ void DrawLevelBackground() {
   Tree *trees = level.trees;
   for (int i = 0; i < level.treeCount; i++) {
     DrawRectangleRec(TreeRectangle(trees[i]), BROWN);
-#ifdef DEBUG_SHOW_HITBOXES
-    DrawCircleLinesV(trees[i].body.pos, TREE_COLLISION_RADIUS, PINK);
-#endif
   }
 }
 void DrawLevelForeground() {
@@ -90,12 +88,6 @@ void DrawLevelForeground() {
 bool CheckCollisionCircleTree(Vector2 pos, float radius, Tree tree) {
   return CheckCollisionCircleRec(pos, radius, TreeRectangle(tree));
 }
-
-// @deprecated
-inline PhysicsBody GetTreeBody(Tree tree) { return tree.body; }
-
-// @deprecated
-inline Entity GetTreeEntity(Tree tree) { return tree; }
 
 void AddEntity(Entity *entity) { arrput(level.allEntities, entity); }
 

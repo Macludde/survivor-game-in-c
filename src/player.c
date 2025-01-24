@@ -14,13 +14,18 @@ extern Level level;
 
 Player InitialPlayer() {
   return (Player){
-      .entity.body =
-          (PhysicsBody){
-              .pos = Vector2Zero(),
-              .velocity = Vector2Zero(),
-              .acceleration = Vector2Zero(),
-              .mass = 400,
-              .radius = 20,
+      .entity =
+          (Entity){
+              .body =
+                  (PhysicsBody){
+                      .pos = Vector2Zero(),
+                      .velocity = Vector2Zero(),
+                      .acceleration = Vector2Zero(),
+                      .mass = 400,
+                      .radius = 20,
+                  },
+              .health = 100,
+              .team = PLAYER,
           },
       .speed = 200,
       .weapon = InitialWeapon(),
@@ -52,13 +57,6 @@ void MovePlayer(Player *player) {
 
 void TickPlayer(Player *player) {
   MovePlayer(player);
-  // stop if hitting object
-  for (int i = 0; i < level.treeCount; ++i) {
-    PhysicsBody treeBody = GetTreeBody(level.trees[i]);
-    if (CheckCollision(player->entity.body, treeBody)) {
-      RigidCollision(&player->entity.body, &treeBody);
-    }
-  }
   TickWeapon(&player->weapon, player);
 }
 

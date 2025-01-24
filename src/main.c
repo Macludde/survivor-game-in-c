@@ -5,6 +5,8 @@
 #include "camera.h"
 #include "debug.h"
 #include "enemy.h"
+#include "entity.h"
+#include "helpers.h"
 #include "level.h"
 #include "player.h"
 #include "raylib.h"
@@ -43,10 +45,11 @@ void SetupWindow() {
 }
 
 int main() {
+  double beforeSetup = time_in_seconds();
   SetupWindow();
   level = (Level){
-      .width = 1000,
-      .height = 1000,
+      .width = 10000,
+      .height = 10000,
       .treeCount = 20,
   };
   InitializeLevel(&level);
@@ -68,6 +71,8 @@ int main() {
   // debug_print("Game started\n");
 
   // game loop
+  while (!IsWindowReady());
+  DEBUG_PRINT("Time to launch: %f", time_in_seconds() - beforeSetup)
   while (!WindowShouldClose())  // run the loop untill the user presses ESCAPE
                                 // or presses the Close button on the window
   {
@@ -82,6 +87,7 @@ int main() {
     TickPlayer(&player);
     TickCamera(&camera, player.entity.body.pos);
     TickEnemySpawner(&camera, &player);
+    HandleAllRigidBodyCollisions(level.allEntities, arrlen(level.allEntities));
 
     // drawing
     BeginDrawing();
@@ -93,6 +99,9 @@ int main() {
     DrawEnemies();
     DrawPlayer(&player);
     DrawLevelForeground();
+#ifdef DEBUG_SHOW_HITBOXES
+    DrawHitboxes(level.allEntities, arrlen(level.allEntities));
+#endif
 
     EndMode2D();
 
@@ -110,6 +119,7 @@ int main() {
   free(level.trees);
   free(enemySpawner.enemies);
   free(player.weapon.bullets);
+  arrfree(level.allEntities);
 
   // destroy the window and cleanup the OpenGL context
   CloseWindow();

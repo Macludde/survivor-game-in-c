@@ -50,13 +50,7 @@ void DrawEnemyWithRotation(Enemy *enemy) {
       rect, (Vector2){enemy->entity.body.radius, enemy->entity.body.radius / 2},
       angle, enemy->color);
 }
-void DrawEnemy(Enemy *enemy) {
-  DrawEnemyWithRotation(enemy);
-#ifdef DEBUG_SHOW_HITBOXES
-  DrawCircleLinesV(enemy->entity.body.pos, enemy->entity.body.radius, PINK);
-  DrawCircleLinesV(enemy->entity.body.pos, 1, PINK);
-#endif
-}
+void DrawEnemy(Enemy *enemy) { DrawEnemyWithRotation(enemy); }
 
 void DrawEnemies() {
   for (int i = 0; i < enemySpawner.highestEnemyIndex + 1; i++)
@@ -162,15 +156,16 @@ bool SpawnEnemy(Camera2D *camera) {
   if (firstFreeSlot == MAX_ENEMY_COUNT) return false;
   float size = ENEMY_DEFAULT_SIZE * (GetRandomValue(8, 12) / 10.0f);
   enemySpawner.enemies[firstFreeSlot] = (Enemy){
-      .entity.body =
-          (PhysicsBody){
-              .pos = RandomPointOffScreen(camera),
-              .velocity = Vector2Zero(),
-              .acceleration = Vector2Zero(),
-              .mass = size * size,
-              .radius = size,
-          },
-      .entity.health = 10,
+      .entity = (Entity){.body =
+                             (PhysicsBody){
+                                 .pos = RandomPointOffScreen(camera),
+                                 .velocity = Vector2Zero(),
+                                 .acceleration = Vector2Zero(),
+                                 .mass = size * size,
+                                 .radius = size,
+                             },
+                         .health = 10,
+                         .team = ENEMIES},
       .spawned = true,
       .color = SlightColorVariation(ENEMY_COLOR),
   };
