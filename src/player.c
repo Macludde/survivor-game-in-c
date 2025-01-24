@@ -14,7 +14,7 @@ extern Level level;
 
 Player InitialPlayer() {
   return (Player){
-      .body =
+      .entity.body =
           (PhysicsBody){
               .pos = Vector2Zero(),
               .velocity = Vector2Zero(),
@@ -44,8 +44,10 @@ Vector2 GetDesiredVeloctiy() {
 
 void MovePlayer(Player *player) {
   Vector2 force = Vector2Scale(GetDesiredVeloctiy(), player->speed);
-  if (Vector2LengthSqr(force) != 0) ApplyAcceleration(&player->body, force);
-  MoveBodyWithWeights(&player->body, ACCELERATION_SPEED, RETARDATION_SPEED);
+  if (Vector2LengthSqr(force) != 0)
+    ApplyAcceleration(&player->entity.body, force);
+  MoveBodyWithWeights(&player->entity.body, ACCELERATION_SPEED,
+                      RETARDATION_SPEED);
 }
 
 void TickPlayer(Player *player) {
@@ -53,17 +55,15 @@ void TickPlayer(Player *player) {
   // stop if hitting object
   for (int i = 0; i < level.treeCount; ++i) {
     PhysicsBody treeBody = GetTreeBody(level.trees[i]);
-    if (CheckCollision(player->body, treeBody)) {
-      RigidCollision(&player->body, &treeBody);
+    if (CheckCollision(player->entity.body, treeBody)) {
+      RigidCollision(&player->entity.body, &treeBody);
     }
   }
-  TickWeapon(&player->weapon, player->body.pos);
+  TickWeapon(&player->weapon, player);
 }
 
 void DrawPlayer(Player *player) {
-  DrawCircleV(player->body.pos, player->body.radius, PLAYER_COLOR);
-  for (int i = 0; i < player->weapon.bulletCapacity; ++i) {
-    if (player->weapon.bullets[i].spawned)
-      DrawBullet(&player->weapon.bullets[i]);
-  }
+  DrawCircleV(player->entity.body.pos, player->entity.body.radius,
+              PLAYER_COLOR);
+  DrawWeapon(&player->weapon);
 }

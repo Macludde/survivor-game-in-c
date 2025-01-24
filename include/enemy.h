@@ -1,4 +1,5 @@
 #pragma once
+#include "entity.h"
 #include "level.h"
 #include "physics.h"
 #include "player.h"
@@ -17,11 +18,10 @@
 #define ENEMY_DEFAULT_SIZE 40
 
 typedef struct Enemy {
-  PhysicsBody body;
+  Entity entity;
   // in radians
   float rotation;
   // radius
-  float health;
   bool spawned;
   Color color;
 } Enemy;
@@ -39,5 +39,5 @@ void RemoveAllEnemies();
 void TickEnemySpawner(Camera2D *camera, Player *player);
 void DrawEnemy(Enemy *enemy);
 void DrawEnemies();
-void EnemyTakeDamage(Enemy *enemy, float damage);
+float EnemyTakeDamage(Enemy *enemy, float damage);
 float GetEnemyRotationSpeedGivenVelocity(Vector2 velocity);

@@ -29,31 +29,32 @@ void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies,
                int enemyCount) {
   // calculate angle to target
   Vector2 targetDelta =
-      Vector2Normalize(Vector2Subtract(target, enemy->body.pos));
+      Vector2Normalize(Vector2Subtract(target, enemy->entity.body.pos));
   float rotationSpeed =
-      GetEnemyRotationSpeedGivenVelocity(enemy->body.velocity);
+      GetEnemyRotationSpeedGivenVelocity(enemy->entity.body.velocity);
   enemy->rotation = LerpRotationAngle(enemy->rotation, targetDelta,
                                       rotationSpeed * GetFrameTime());
 
   Vector2 force = Vector2Scale(Vector2Rotate((Vector2){1, 0}, enemy->rotation),
                                ENEMY_MOVEMENT_SPEED);
 
-  ApplyAcceleration(&enemy->body, force);
-  MoveBody(&enemy->body);
+  ApplyAcceleration(&enemy->entity.body, force);
+  MoveBody(&enemy->entity.body);
 }
 
 void DrawEnemyWithRotation(Enemy *enemy) {
   float angle = enemy->rotation * RAD2DEG;
-  Rectangle rect = {enemy->body.pos.x, enemy->body.pos.y,
-                    enemy->body.radius * 2, enemy->body.radius};
-  DrawRectanglePro(rect, (Vector2){enemy->body.radius, enemy->body.radius / 2},
-                   angle, enemy->color);
+  Rectangle rect = {enemy->entity.body.pos.x, enemy->entity.body.pos.y,
+                    enemy->entity.body.radius * 2, enemy->entity.body.radius};
+  DrawRectanglePro(
+      rect, (Vector2){enemy->entity.body.radius, enemy->entity.body.radius / 2},
+      angle, enemy->color);
 }
 void DrawEnemy(Enemy *enemy) {
   DrawEnemyWithRotation(enemy);
 #ifdef DEBUG_SHOW_HITBOXES
-  DrawCircleLinesV(enemy->body.pos, enemy->body.radius, PINK);
-  DrawCircleLinesV(enemy->body.pos, 1, PINK);
+  DrawCircleLinesV(enemy->entity.body.pos, enemy->entity.body.radius, PINK);
+  DrawCircleLinesV(enemy->entity.body.pos, 1, PINK);
 #endif
 }
 
@@ -134,14 +135,18 @@ void DecreaseHighestEnemyIndex() {
   }
 }
 
-void EnemyTakeDamage(Enemy *enemy, float damage) {
-  enemy->health -= damage;
-  if (enemy->health <= 0) {
-    if (enemy == &enemySpawner.enemies[enemySpawner.highestEnemyIndex])
-      DecreaseHighestEnemyIndex();
-    enemy->spawned = false;
-    enemySpawner.enemyCount--;
-  }
+void HandleEnemyDeath(Enemy *enemy) {
+  if (enemy == &enemySpawner.enemies[enemySpawner.highestEnemyIndex])
+    DecreaseHighestEnemyIndex();
+  enemy->spawned = false;
+  enemySpawner.enemyCount--;
+}
+
+// returns remaining health
+float EnemyTakeDamage(Enemy *enemy, float damage) {
+  float remainingHealth = EntityTakeDamage(&enemy->entity, damage);
+  if (remainingHealth <= 0) HandleEnemyDeath(enemy);
+  return remainingHealth;
 }
 
 // returns true if enemy was spawned, false if not
@@ -155,15 +160,15 @@ bool SpawnEnemy(Camera2D *camera) {
   if (firstFreeSlot == MAX_ENEMY_COUNT) return false;
   float size = ENEMY_DEFAULT_SIZE * (GetRandomValue(8, 12) / 10.0f);
   enemySpawner.enemies[firstFreeSlot] = (Enemy){
-      .body =
+      .entity.body =
           (PhysicsBody){
               .pos = RandomPointOffScreen(camera),
-              .velocity = (Vector2){0, 0},
-              .acceleration = (Vector2){0, 0},
+              .velocity = Vector2Zero(),
+              .acceleration = Vector2Zero(),
               .mass = size * size,
               .radius = size,
           },
-      .health = 10,
+      .entity.health = 10,
       .spawned = true,
       .color = SlightColorVariation(ENEMY_COLOR),
   };
@@ -181,7 +186,7 @@ void TickEnemySpawner(Camera2D *camera, Player *player) {
   }
   for (int i = 0; i < enemySpawner.highestEnemyIndex + 1; ++i)
     if (enemySpawner.enemies[i].spawned)
-      TickEnemy(&enemySpawner.enemies[i], player->body.pos,
+      TickEnemy(&enemySpawner.enemies[i], player->entity.body.pos,
                 enemySpawner.enemies, enemySpawner.enemyCount);
   HandleAllEnemyCollisions(enemySpawner.enemies, enemySpawner.enemyCount,
                            player);

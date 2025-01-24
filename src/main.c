@@ -45,7 +45,7 @@ int main() {
   Player player = InitialPlayer();
   camera = (Camera2D){
       .offset = {DEFAULT_SCREEN_WIDTH / 2.0f, DEFAULT_SCREEN_HEIGHT / 2.0f},
-      .target = player.body.pos,
+      .target = player.entity.body.pos,
       .rotation = 0.0f,
       .zoom = 1.0f,
   };
@@ -74,7 +74,7 @@ int main() {
     if (IsKeyPressed(KEY_F1)) RemoveAllEnemies();
 #endif
     TickPlayer(&player);
-    TickCamera(&camera, player.body.pos);
+    TickCamera(&camera, player.entity.body.pos);
     TickEnemySpawner(&camera, &player);
 
     // drawing

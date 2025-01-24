@@ -26,15 +26,21 @@ Weapon InitialWeapon() {
 void RemoveBullet(Bullet *bullet) { bullet->spawned = false; }
 
 void BulletHitEnemy(Bullet *bullet, Weapon *weapon, Enemy *enemy) {
-  RigidCollision(&bullet->body, &enemy->body);
-  EnemyTakeDamage(enemy, weapon->damage);
+  float remainingHealth = EnemyTakeDamage(enemy, weapon->damage);
+  if (remainingHealth <= 0) {
+    // enemy died
+    return;
+  } else {
+    RigidCollision(&bullet->body, &enemy->entity.body);
+  }
   RemoveBullet(bullet);
 }
 
 bool BulletEnemyCollisions(Bullet *bullet, Weapon *weapon) {
   Enemy *enemies = enemySpawner.enemies;
   for (int i = 0; i < enemySpawner.highestEnemyIndex; ++i) {
-    if (enemies[i].spawned && CheckCollision(bullet->body, enemies[i].body)) {
+    if (enemies[i].spawned &&
+        CheckCollision(bullet->body, enemies[i].entity.body)) {
       BulletHitEnemy(bullet, weapon, &enemies[i]);
       return true;
     }
@@ -78,10 +84,10 @@ Vector2 ClosestEnemy(Vector2 pos, float maxRange) {
   float closestDistanceSqr = maxRange * maxRange;
   for (int i = 0; i < enemySpawner.highestEnemyIndex; ++i) {
     if (enemies[i].spawned) {
-      float distanceSqr = Vector2DistanceSqr(pos, enemies[i].body.pos);
+      float distanceSqr = Vector2DistanceSqr(pos, enemies[i].entity.body.pos);
       if (distanceSqr < closestDistanceSqr) {
         closestDistanceSqr = distanceSqr;
-        closest = enemies[i].body.pos;
+        closest = enemies[i].entity.body.pos;
       }
     }
   }
@@ -91,16 +97,18 @@ Vector2 ClosestEnemy(Vector2 pos, float maxRange) {
 
 bool SpawnBullet(Weapon *weapon, Vector2 pos) {
   Vector2 closestEnemy = ClosestEnemy(pos, weapon->range);
-  if (closestEnemy.x == INFINITY) return;
+  if (closestEnemy.x == INFINITY) return false;  // no enemies in range
   for (int i = 0; i < weapon->bulletCapacity; ++i) {
     if (!weapon->bullets[i].spawned) {
       weapon->bullets[i].spawned = true;
-      weapon->bullets[i].body.pos = pos;
-      weapon->bullets[i].body.velocity = Vector2Add(
-          // player->body.velocity,
+      Vector2 direction = Vector2Add(
+          // player->entity.body.velocity,
           Vector2Zero(),
           Vector2Scale(Vector2Normalize(Vector2Subtract(closestEnemy, pos)),
-                       weapon->speed));  // TODO: aim at enemy, for now random¨
+                       weapon->speed));
+
+      weapon->bullets[i].body.pos = pos;
+      weapon->bullets[i].body.velocity = direction;
       weapon->bullets[i].body.radius = 5;
       weapon->bullets[i].body.mass = 25;
       return true;
@@ -112,24 +120,25 @@ bool SpawnBullet(Weapon *weapon, Vector2 pos) {
   if (weapon->bullets == NULL) {
     weapon->bulletCapacity = 0;
     exit(1);  // OUT OF MEMORY
+    return false;
   }
   return SpawnBullet(weapon, pos);
 }
 
-void TickWeapon(Weapon *weapon, Vector2 playerPos) {
+void TickWeapon(Weapon *weapon, Player *player) {
+  Vector2 playerPos = player->entity.body.pos;
   if (time_in_seconds() - weapon->lastFired > (1 / weapon->fireRate)) {
     SpawnBullet(weapon, playerPos);
     weapon->lastFired = time_in_seconds();
   }
   for (int i = 0; i < weapon->bulletCapacity; ++i) {
     if (weapon->bullets[i].spawned) {
-      weapon->bullets[i].body.pos = Vector2Add(
-          weapon->bullets[i].body.pos,
-          Vector2Scale(weapon->bullets[i].body.velocity, GetFrameTime()));
-      if (HandleBulletCollisions(&weapon->bullets[i], weapon) ||
-          HandleBulletOffScreen(&weapon->bullets[i])) {
-        // bullet hit something
-      }
+      Bullet *bullet = &weapon->bullets[i];
+      bullet->body.pos =
+          Vector2Add(bullet->body.pos,
+                     Vector2Scale(bullet->body.velocity, GetFrameTime()));
+      if (HandleBulletCollisions(bullet, weapon)) continue;
+      if (HandleBulletOffScreen(bullet)) continue;
     }
   }
 }
