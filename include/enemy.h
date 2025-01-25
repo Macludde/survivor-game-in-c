@@ -6,7 +6,7 @@
 #include "raylib.h"
 
 // this scales with player speed
-#define MAX_ENEMY_COUNT 10
+#define MAX_ENEMY_COUNT 1024
 #define ENEMY_COLOR RED
 #define ENEMY_MOVEMENT_SPEED 100.0f
 #define ENEMY_MAX_SPEED (ENEMY_MOVEMENT_SPEED / FRICTION_COEFFICIENT)
@@ -18,6 +18,7 @@
 #define ENEMY_DEFAULT_SIZE 40
 
 typedef struct Enemy {
+  // This NEEDS to be stored first, so we can cast an Entity pointer to Enemy
   Entity entity;
   // in radians
   float rotation;
@@ -39,5 +40,5 @@ void RemoveAllEnemies();
 void TickEnemySpawner(Camera2D *camera, Player *player);
 void DrawEnemy(Enemy *enemy);
 void DrawEnemies();
-float EnemyTakeDamage(Enemy *enemy, float damage);
+void HandleEnemyDeath(Enemy *enemy);
 float GetEnemyRotationSpeedGivenVelocity(Vector2 velocity);

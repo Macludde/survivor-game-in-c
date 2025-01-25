@@ -138,13 +138,6 @@ void HandleEnemyDeath(Enemy *enemy) {
   enemySpawner.enemyCount--;
 }
 
-// returns remaining health
-float EnemyTakeDamage(Enemy *enemy, float damage) {
-  float remainingHealth = EntityTakeDamage(&enemy->entity, damage);
-  if (remainingHealth <= 0) HandleEnemyDeath(enemy);
-  return remainingHealth;
-}
-
 // returns true if enemy was spawned, false if not
 bool SpawnEnemy(Camera2D *camera) {
   int firstFreeSlot;
@@ -165,7 +158,7 @@ bool SpawnEnemy(Camera2D *camera) {
                                  .radius = size,
                              },
                          .health = 10,
-                         .team = ENEMIES},
+                         .type = ENTITY_TYPE_ENEMY},
       .spawned = true,
       .color = SlightColorVariation(ENEMY_COLOR),
   };

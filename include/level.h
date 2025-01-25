@@ -33,7 +33,6 @@ void DrawLevelBackground();  // Draws stuff which should appear behind
 void DrawLevelForeground();  // Draws stuff which should appear in
                              // front of everything else
 Rectangle TreeRectangle(Tree tree);
-bool CheckCollisionCircleTree(Vector2 pos, float radius, Tree tree);
 // @deprecated
 inline static PhysicsBody GetTreeBody(Tree tree) { return tree.body; }
 // @deprecated

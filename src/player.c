@@ -25,7 +25,7 @@ Player InitialPlayer() {
                       .radius = 20,
                   },
               .health = 100,
-              .team = PLAYER,
+              .type = ENTITY_TYPE_PLAYER,
           },
       .speed = 200,
       .weapon = InitialWeapon(),

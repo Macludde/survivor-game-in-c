@@ -5,21 +5,18 @@
 #include "physics.h"
 #include "raylib.h"
 
-enum Team { NEUTRAL, PLAYER, ENEMIES };
+enum EntityType { ENTITY_TYPE_TREE, ENTITY_TYPE_PLAYER, ENTITY_TYPE_ENEMY };
 
 typedef struct Entity {
   float health;
   PhysicsBody body;
-  enum Team team;
+  enum EntityType type;
 } Entity;
 
 // returns remaining health. so negative means overkill, 0 means perfect kill,
 // positive means still alive
-inline static float EntityTakeDamage(Entity *entity, float damage) {
-  entity->health -= damage;
-  return entity->health;
-}
-
+float EntityTakeDamage(Entity *entity, float damage);
+void TickEntities(Entity *entities[], int count);
 void HandleAllRigidBodyCollisions(Entity *entities[], int count);
 
 void DrawHitboxes(Entity *entities[], int count);

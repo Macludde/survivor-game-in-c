@@ -3,6 +3,7 @@
 #include "enemy.h"
 #include "helpers.h"
 #include "level.h"
+#include "lib/stb_ds.h"
 #include "player.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -25,43 +26,26 @@ Weapon InitialWeapon() {
 
 void RemoveBullet(Bullet *bullet) { bullet->spawned = false; }
 
-void BulletHitEnemy(Bullet *bullet, Weapon *weapon, Enemy *enemy) {
-  float remainingHealth = EnemyTakeDamage(enemy, weapon->damage);
+void BulletHit(Bullet *bullet, Weapon *weapon, Entity *entity) {
+  float remainingHealth = EntityTakeDamage(entity, weapon->damage);
   if (remainingHealth <= 0) {
-    // enemy died
-    return;
+    // entity died
   } else {
-    RigidCollision(&bullet->body, &enemy->entity.body);
+    RigidCollision(&bullet->body, &entity->body);
   }
   RemoveBullet(bullet);
 }
 
-bool BulletEnemyCollisions(Bullet *bullet, Weapon *weapon) {
-  Enemy *enemies = enemySpawner.enemies;
-  for (int i = 0; i < enemySpawner.highestEnemyIndex; ++i) {
-    if (enemies[i].spawned &&
-        CheckCollision(bullet->body, enemies[i].entity.body)) {
-      BulletHitEnemy(bullet, weapon, &enemies[i]);
+bool HandleBulletCollisions(Bullet *bullet, Weapon *weapon, Entity **entities,
+                            int count) {
+  for (int i = count - 1; i >= 0; --i) {
+    if (entities[i]->type == ENTITY_TYPE_PLAYER) continue;
+    if (CheckCollision(bullet->body, entities[i]->body)) {
+      BulletHit(bullet, weapon, entities[i]);
       return true;
     }
   }
   return false;
-}
-
-bool BulletTreeCollisions(Bullet *bullet) {
-  for (int i = 0; i < level.treeCount; ++i) {
-    if (CheckCollision(bullet->body, GetTreeBody(level.trees[i]))) {
-      RemoveBullet(bullet);
-      return true;
-    }
-  }
-  return false;
-}
-
-// Will return true if bullet hit something
-bool HandleBulletCollisions(Bullet *bullet, Weapon *weapon) {
-  // will call one after another until one returns true
-  return BulletEnemyCollisions(bullet, weapon) || BulletTreeCollisions(bullet);
 }
 
 bool HandleBulletOffScreen(Bullet *bullet) {
@@ -133,14 +117,15 @@ void TickWeapon(Weapon *weapon, Player *player) {
     weapon->lastFired = time_in_seconds();
   }
   for (int i = 0; i < weapon->bulletCapacity; ++i) {
-    if (weapon->bullets[i].spawned) {
-      Bullet *bullet = &weapon->bullets[i];
-      bullet->body.pos =
-          Vector2Add(bullet->body.pos,
-                     Vector2Scale(bullet->body.velocity, GetFrameTime()));
-      if (HandleBulletCollisions(bullet, weapon)) continue;
-      if (HandleBulletOffScreen(bullet)) continue;
-    }
+    if (!weapon->bullets[i].spawned) continue;
+
+    Bullet *bullet = &weapon->bullets[i];
+    bullet->body.pos = Vector2Add(
+        bullet->body.pos, Vector2Scale(bullet->body.velocity, GetFrameTime()));
+    if (HandleBulletCollisions(bullet, weapon, level.allEntities,
+                               arrlen(level.allEntities)))
+      continue;
+    if (HandleBulletOffScreen(bullet)) continue;
   }
 }
 

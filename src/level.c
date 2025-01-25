@@ -10,56 +10,60 @@
 #include "raylib.h"
 #include "raymath.h"
 
-Level *AllocateLevel(int width, int height, int treeCount) {
-  Level *level = malloc(sizeof(Level));
-  if (level == NULL) {
-    printf("Failed to allocate memory for level\n");
-    exit(1);
-  }
-  level->width = width;
-  level->height = height;
-  level->treeCount = treeCount;
-  level->allEntities = NULL;
-  return level;
-}
-
+#define MAX_TREES 1024
 void InitializeLevel(Level *level) {
-  Tree *trees = malloc(level->treeCount * sizeof(Tree));
+  Tree *trees = malloc(MAX_TREES * sizeof(Tree));
   if (trees == NULL) {
     printf("Failed to allocate memory for trees\n");
     exit(1);
   }
-  arrsetcap(
-      level->allEntities,
-      level->treeCount + 100);  // player + enemies as well. We can afford
-                                // using a little too much memory, we want to
-                                // avoid rescaling during runtime if possible
 
   int retries = 0;
-  for (int i = 0; i < level->treeCount; ++i) {
+  int i = 0;
+  while (retries < 10 && i < MAX_TREES) {
+  tree_loop_start:
     trees[i].body.pos =
         (Vector2){GetRandomValue(-level->width, level->width),
                   GetRandomValue(-level->height, level->height)};
+    if (Vector2Distance(trees[i].body.pos, Vector2Zero()) < 500) {
+      ++retries;
+      goto tree_loop_start;
+    }
     for (int j = 0; j < i; ++j) {
-      if (Vector2Distance(trees[i].body.pos, trees[j].body.pos) < 120) {
+      if (Vector2Distance(trees[i].body.pos, trees[j].body.pos) < 200) {
         // retry
-        --i;
         ++retries;
         if (retries > 10) {
-          level->treeCount = i;
-          break;
+          --i;
+          goto tree_loop_finished;
         }
-        break;
+        goto tree_loop_start;
       }
     }
+    retries = 0;
+
     trees[i].body.mass = TREE_MASS;
     trees[i].body.radius = TREE_COLLISION_RADIUS;
     trees[i].body.velocity = Vector2Zero();
     trees[i].body.acceleration = Vector2Zero();
-    retries = 0;
     trees[i].health = 100;
-    trees[i].team = NEUTRAL;
-    arrput(level->allEntities, &trees[i]);
+    trees[i].type = ENTITY_TYPE_TREE;
+    ++i;
+  }
+tree_loop_finished:
+  level->treeCount = i;
+
+  trees = realloc(trees, level->treeCount * sizeof(Tree));
+  if (trees == NULL) {
+    // should not be able to happen
+    printf("Could not shrink tree heap, exiting");
+    free(trees);
+    exit(1);
+  }
+  arrsetcap(level->allEntities,
+            level->treeCount + 100);  // +100 for player and enemies, roughly
+  for (i = 0; i < level->treeCount; ++i) {
+    arrput(level->allEntities, trees + i);
   }
   level->trees = trees;
 }
@@ -83,10 +87,6 @@ void DrawLevelForeground() {
     DrawCircle(trees[i].body.pos.x,
                trees[i].body.pos.y - TREE_TRUNK_HEIGHT + 10, 30, GREEN);
   }
-}
-
-bool CheckCollisionCircleTree(Vector2 pos, float radius, Tree tree) {
-  return CheckCollisionCircleRec(pos, radius, TreeRectangle(tree));
 }
 
 void AddEntity(Entity *entity) { arrput(level.allEntities, entity); }

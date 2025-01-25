@@ -50,7 +50,6 @@ int main() {
   level = (Level){
       .width = 10000,
       .height = 10000,
-      .treeCount = 20,
   };
   InitializeLevel(&level);
   Player player = InitialPlayer();
