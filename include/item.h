@@ -1,16 +1,32 @@
 #pragma once
 
+typedef struct PlayerItem PlayerItem;
 #include "enemy.h"
+#include "player.h"
 #include "raylib.h"
 
-typedef struct {
+struct PlayerItem {
   int order;  // defines consistent order of items
-  void (*beforeTick)();
-  void (*afterTick)();
-  void (*onDeath)(float);         // overkill
-  void (*onKill)(float, Enemy*);  // overkill, shot enemy
-  void (*onMove)(Vector2);        // direction
-} PlayerItem;
+  void (*beforeTick)(Player *);
+  void (*afterTick)(Player *);
+  void (*onDeath)(float);                 // overkill
+  void (*onKill)(float, struct Enemy *);  // overkill, shot enemy
+  void (*onMove)(Vector2);                // direction
+  void (*drawBackground)(Player *);
+  void (*drawForeground)(Player *);
+};
+
+typedef struct Items {
+  PlayerItem *flameGrenade;
+} Items;
+extern Items items;
+
+void InitializeItems();
+void FreeItems();
+void ItemsCallBeforeTick(Player *player);
+void ItemsCallAfterTick(Player *player);
+void ItemsCallDrawBackground(Player *player);
+void ItemsCallDrawForeground(Player *player);
 
 /*
 Items to build:

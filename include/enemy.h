@@ -1,4 +1,7 @@
 #pragma once
+
+typedef struct Enemy Enemy;
+
 #include "entity.h"
 #include "level.h"
 #include "physics.h"
@@ -17,7 +20,7 @@
 
 #define ENEMY_DEFAULT_SIZE 40
 
-typedef struct Enemy {
+struct Enemy {
   // This NEEDS to be stored first, so we can cast an Entity pointer to Enemy
   Entity entity;
   // in radians
@@ -25,7 +28,7 @@ typedef struct Enemy {
   // radius
   bool spawned;
   Color color;
-} Enemy;
+};
 
 typedef struct EnemySpawner {
   Enemy *enemies;

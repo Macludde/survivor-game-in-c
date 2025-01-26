@@ -16,6 +16,9 @@ typedef struct Entity {
 // returns remaining health. so negative means overkill, 0 means perfect kill,
 // positive means still alive
 float EntityTakeDamage(Entity *entity, float damage);
+// deal damage to all entities in area
+void EntityAreaTakeDamage(Entity *entities[], int count, Vector2 pos,
+                          float radius, float damage);
 void TickEntities(Entity *entities[], int count);
 void HandleAllRigidBodyCollisions(Entity *entities[], int count);
 

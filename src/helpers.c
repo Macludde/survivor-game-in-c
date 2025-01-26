@@ -1,8 +1,10 @@
 #include "helpers.h"
 
+#include <stdio.h>
 #include <time.h>
 
 #include "raylib.h"
+#include "raymath.h"
 
 #ifdef _WIN32
 
@@ -30,4 +32,36 @@ Color SlightColorVariation(Color base) {
                        .a = 255,
                    },
                    0.1f);
+}
+
+Vector2 CalculateMidpoint(Vector2 origin, Vector2 target) {
+  Vector2 midpoint;
+  midpoint.x = (origin.x + target.x) / 2;
+  midpoint.y = (origin.y + target.y) / 2;
+  return midpoint;
+}
+
+Vector2 PointAlongArc(Vector2 origin, Vector2 target, float progress) {
+  if (progress < 0.0f || progress > 1.0f) {
+    printf("Progress must be between 0 and 1\n");
+    return Vector2Zero();
+  }
+
+  // Calculate control point for the arc (parabolic midpoint)
+  Vector2 control = CalculateMidpoint(origin, target);
+  float height = fabs(target.x - origin.x) / 4.0f;  // Adjust arc steepness here
+  control.y -= height;
+
+  // Quadratic Bezier interpolation formula
+  float t = progress;
+  float oneMinusT = 1.0f - t;
+
+  Vector2 point;
+  point.x = (int)(oneMinusT * oneMinusT * origin.x +
+                  2 * oneMinusT * t * control.x + t * t * target.x);
+
+  point.y = (int)(oneMinusT * oneMinusT * origin.y +
+                  2 * oneMinusT * t * control.y + t * t * target.y);
+
+  return point;
 }

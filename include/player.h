@@ -1,23 +1,26 @@
 #pragma once
 #include <stdlib.h>
 
+typedef struct Player Player;
 #include "entity.h"
+#include "item.h"
 #include "level.h"
 #include "physics.h"
 #include "raylib.h"
-#include "weapon_type.h"  // weapon refers to player
+#include "weapon.h"
 
 // this scales with player speed
 #define ACCELERATION_SPEED 10.0f
 #define RETARDATION_SPEED 15.0f
 #define PLAYER_COLOR DARKGREEN
 
-typedef struct Player {
+struct Player {
   Entity entity;
   float speed;
-  Weapon weapon;
+  Weapon *weapon;
   int experience;
-} Player;
+  PlayerItem **items;
+};
 
 Player InitialPlayer();
 

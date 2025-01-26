@@ -7,16 +7,28 @@
 
 float EntityTakeDamage(Entity *entity, float damage) {
   entity->health -= damage;
-  switch (entity->type) {
-    case ENTITY_TYPE_PLAYER:
-      break;
-    case ENTITY_TYPE_TREE:
-      break;
-    case ENTITY_TYPE_ENEMY:
-      HandleEnemyDeath((Enemy *)entity);
-      break;
+  if (entity->health <= 0) {
+    switch (entity->type) {
+      case ENTITY_TYPE_PLAYER:
+        break;
+      case ENTITY_TYPE_TREE:
+        break;
+      case ENTITY_TYPE_ENEMY:
+        HandleEnemyDeath((Enemy *)entity);
+        break;
+    }
   }
   return entity->health;
+}
+
+void EntityAreaTakeDamage(Entity *entities[], int count, Vector2 pos,
+                          float radius, float damage) {
+  for (int i = 0; i < count; ++i) {
+    if (CheckCollisionCircles(pos, radius, entities[i]->body.pos,
+                              entities[i]->body.radius)) {
+      EntityTakeDamage(entities[i], damage);
+    }
+  }
 }
 
 void HandleAllRigidBodyCollisions(Entity *entities[], int count) {

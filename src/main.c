@@ -7,6 +7,7 @@
 #include "enemy.h"
 #include "entity.h"
 #include "helpers.h"
+#include "item.h"
 #include "level.h"
 #include "player.h"
 #include "raylib.h"
@@ -60,6 +61,8 @@ int main() {
       .rotation = 0.0f,
       .zoom = 1.0f,
   };
+  InitializeItems();
+  arrput(player.items, items.flameGrenade);
 
   InitializeEnemySpawner(&enemySpawner);
   assert(sizeof(player) <= 1024);
@@ -83,10 +86,12 @@ int main() {
       player.entity.body.pos = Vector2Zero();
     }
 #endif
+    ItemsCallBeforeTick(&player);
     TickPlayer(&player);
-    TickCamera(&camera, player.entity.body.pos);
+    TickCamera(player.entity.body.pos);
     TickEnemySpawner(&camera, &player);
     HandleAllRigidBodyCollisions(level.allEntities, arrlen(level.allEntities));
+    ItemsCallAfterTick(&player);
 
     // drawing
     BeginDrawing();
@@ -95,9 +100,11 @@ int main() {
     BeginMode2D(camera);
     // draw world
     DrawLevelBackground();
+    ItemsCallDrawBackground(&player);
     DrawEnemies();
     DrawPlayer(&player);
     DrawLevelForeground();
+    ItemsCallDrawForeground(&player);
 #ifdef DEBUG_SHOW_HITBOXES
     DrawHitboxes(level.allEntities, arrlen(level.allEntities));
 #endif
@@ -117,8 +124,11 @@ int main() {
 
   free(level.trees);
   free(enemySpawner.enemies);
-  free(player.weapon.bullets);
+  free(player.weapon->bullets);
+  free(player.weapon);
   arrfree(level.allEntities);
+  FreeItems();
+  arrfree(player.items);
 
   // destroy the window and cleanup the OpenGL context
   CloseWindow();

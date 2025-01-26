@@ -12,16 +12,16 @@ extern Camera2D camera;
 extern EnemySpawner enemySpawner;
 extern Level level;
 
-Weapon InitialWeapon() {
-  return (Weapon){
-      .damage = 10,
-      .range = 800,
-      .speed = 300,
-      .fireRate = 1,
-      .lastFired = 0,
-      .bullets = calloc(DEFAULT_BULLET_CAPACITY, sizeof(Bullet)),
-      .bulletCapacity = DEFAULT_BULLET_CAPACITY,
-  };
+Weapon *InitialWeapon() {
+  Weapon *weapon = calloc(1, sizeof(Weapon));
+  weapon->damage = 10;
+  weapon->range = 800;
+  weapon->speed = 300;
+  weapon->fireRate = 1;
+  weapon->lastFired = 0;
+  weapon->bullets = calloc(DEFAULT_BULLET_CAPACITY, sizeof(Bullet));
+  weapon->bulletCapacity = DEFAULT_BULLET_CAPACITY;
+  return weapon;
 }
 
 void RemoveBullet(Bullet *bullet) { bullet->spawned = false; }
