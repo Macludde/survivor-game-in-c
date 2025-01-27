@@ -3,13 +3,25 @@
 #include "lib/stb_ds.h"
 
 PlayerItem *InitializeFlameGrenade();
+PlayerItem *InitializeSimpleGun();
+void FreeSimpleGun();
 void FreeFlameGrenade();
 
 Items items;
 
-void InitializeItems() { items.flameGrenade = InitializeFlameGrenade(); }
+void InitializeItems() {
+  arrput(items, InitializeSimpleGun());
+  arrput(items, InitializeFlameGrenade());
+}
 
-void FreeItems() { FreeFlameGrenade(); }
+void FreeItems() {
+  FreeSimpleGun();
+  FreeFlameGrenade();
+  for (int i = 0; i < arrlen(items); ++i) {
+    free(items[i]);
+  }
+  arrfree(items);
+}
 
 void ItemsCallBeforeTick(Player *player) {
   for (int i = 0; i < arrlen(player->items); ++i) {

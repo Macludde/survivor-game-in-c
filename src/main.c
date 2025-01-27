@@ -62,7 +62,7 @@ int main() {
       .zoom = 1.0f,
   };
   InitializeItems();
-  arrput(player.items, items.flameGrenade);
+  for (int i = 0; i < arrlen(items); ++i) arrput(player.items, items[i]);
 
   InitializeEnemySpawner(&enemySpawner);
   assert(sizeof(player) <= 1024);
@@ -124,11 +124,8 @@ int main() {
 
   free(level.trees);
   free(enemySpawner.enemies);
-  free(player.weapon->bullets);
-  free(player.weapon);
   arrfree(level.allEntities);
   FreeItems();
-  arrfree(player.items);
 
   // destroy the window and cleanup the OpenGL context
   CloseWindow();

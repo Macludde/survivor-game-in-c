@@ -13,11 +13,14 @@
 #define FLAME_SIZE 100    // radius
 #define TIME_TO_SPLASH 1  // seconds
 #define DEFAULT_RANGE 400
-#define TICK_DAMAGE 10  // per second
+#define TICK_DAMAGE 10        // per second
+#define FLAME_FIRE_DELAY 1.2  // in seconds
 
 extern EnemySpawner enemySpawner;
 extern Level level;
-PlayerItem *FlameGrenade;
+
+static PlayerItem *FlameGrenade;
+
 typedef struct FlameGrenadeBullet {
   Vector2 target;
   Vector2 origin;
@@ -29,8 +32,8 @@ typedef struct FlameSplash {
   double createdAt;  // time
 } FlameSplash;
 
-FlameGrenadeBullet *bullets = NULL;
-FlameSplash *splahes = NULL;
+static FlameGrenadeBullet *bullets = NULL;
+static FlameSplash *splahes = NULL;
 
 static void TickFlame(int index) {
   if (time_in_seconds() - splahes[index].createdAt > FLAME_TTL) {
@@ -109,7 +112,7 @@ static void Shoot(Vector2 origin, float rangeModifier) {
 static void Tick(Player *player) {
   static double lastShot = 0;
   double now = time_in_seconds();
-  if (now - lastShot > 1.2) {
+  if (now - lastShot > FLAME_FIRE_DELAY) {
     Shoot(player->entity.body.pos, 1.0f);
     lastShot = now;
   }
@@ -151,7 +154,6 @@ PlayerItem *InitializeFlameGrenade() {
 }
 
 void FreeFlameGrenade() {
-  free(FlameGrenade);
   arrfree(bullets);
   arrfree(splahes);
 }

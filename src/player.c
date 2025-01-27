@@ -6,7 +6,6 @@
 #include "physics.h"
 #include "raylib.h"
 #include "raymath.h"
-#include "weapon.h"
 
 extern Camera2D camera;
 extern EnemySpawner enemySpawner;
@@ -27,8 +26,14 @@ Player InitialPlayer() {
               .health = 100,
               .type = ENTITY_TYPE_PLAYER,
           },
-      .speed = 200,
-      .weapon = InitialWeapon(),
+      .stats =
+          (PlayerStats){
+              .damage = 1.0f,
+              .bulletSpeed = 1.0f,
+              .movementSpeed = 1.0f,
+              .range = 1.0f,
+              .attackSpeed = 1.0f,
+          },
   };
 }
 
@@ -47,21 +52,20 @@ Vector2 GetDesiredVeloctiy() {
   return Vector2Normalize(delta);
 }
 
+#define DEFAULT_PLAYER_MOVEMENT_SPEED 200
 void MovePlayer(Player *player) {
-  Vector2 force = Vector2Scale(GetDesiredVeloctiy(), player->speed);
+  Vector2 force =
+      Vector2Scale(GetDesiredVeloctiy(),
+                   DEFAULT_PLAYER_MOVEMENT_SPEED * player->stats.movementSpeed);
   if (Vector2LengthSqr(force) != 0)
     ApplyAcceleration(&player->entity.body, force);
   MoveBodyWithWeights(&player->entity.body, ACCELERATION_SPEED,
                       RETARDATION_SPEED);
 }
 
-void TickPlayer(Player *player) {
-  MovePlayer(player);
-  TickWeapon(&player->weapon, player);
-}
+void TickPlayer(Player *player) { MovePlayer(player); }
 
 void DrawPlayer(Player *player) {
   DrawCircleV(player->entity.body.pos, player->entity.body.radius,
               PLAYER_COLOR);
-  DrawWeapon(&player->weapon);
 }

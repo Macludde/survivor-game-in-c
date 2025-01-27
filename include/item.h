@@ -16,9 +16,7 @@ struct PlayerItem {
   void (*drawForeground)(Player *);
 };
 
-typedef struct Items {
-  PlayerItem *flameGrenade;
-} Items;
+typedef PlayerItem **Items;
 extern Items items;
 
 void InitializeItems();
