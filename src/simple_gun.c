@@ -3,11 +3,11 @@
 #include "item.h"
 #include "level.h"
 #include "lib/stb_ds.h"
+#include "modules/camera.h"
 #include "player.h"
 #include "raylib.h"
 #include "raymath.h"
 
-extern Camera2D camera;
 extern EnemySpawner enemySpawner;
 extern Level level;
 extern Items items;
@@ -49,14 +49,7 @@ static bool HandleBulletCollisions(int index, Entity **entities, int count,
 
 static bool HandleBulletOffScreen(int index) {
   Bullet bullet = bullets[index];
-  Vector2 topLeft = Vector2SubtractValue(
-      GetScreenToWorld2D((Vector2){0, 0}, camera), bullet.body.radius + 100);
-  Vector2 bottomRight = Vector2AddValue(
-      GetScreenToWorld2D((Vector2){GetScreenWidth(), GetScreenHeight()},
-                         camera),
-      bullet.body.radius + 100);
-  if (bullet.body.pos.x < topLeft.x || bullet.body.pos.x > bottomRight.x ||
-      bullet.body.pos.y < topLeft.y || bullet.body.pos.y > bottomRight.y) {
+  if (!IsCircleOnScreen(bullet.body.pos, bullet.body.radius)) {
     RemoveBullet(index);
     return true;
   }

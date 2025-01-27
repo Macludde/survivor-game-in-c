@@ -1,11 +1,11 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "camera.h"
 #include "helpers.h"
 #include "item.h"
 #include "level.h"
 #include "lib/stb_ds.h"
+#include "modules/camera.h"
 #include "raylib.h"
 #include "raymath.h"
 

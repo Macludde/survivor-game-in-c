@@ -7,7 +7,6 @@
 #include "raylib.h"
 #include "raymath.h"
 
-extern Camera2D camera;
 extern EnemySpawner enemySpawner;
 extern Level level;
 

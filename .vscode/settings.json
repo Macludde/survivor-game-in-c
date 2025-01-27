@@ -22,5 +22,8 @@
     "files.watcherExclude": {
         "**/target": true
     },
-    "C_Cpp.clang_format_fallbackStyle": "Google"
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "C_Cpp.vcFormat.indent.preserveComments": true,
+    "C_Cpp.formatting": "default",
+    "C_Cpp.autoAddFileAssociations": false
 }
