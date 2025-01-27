@@ -10,8 +10,8 @@
 extern EnemySpawner enemySpawner;
 extern Level level;
 
-Player InitialPlayer() {
-  return (Player){
+OLD_Player InitialPlayer() {
+  return (OLD_Player){
       .entity =
           (Entity){
               .body =
@@ -52,7 +52,7 @@ Vector2 GetDesiredVeloctiy() {
 }
 
 #define DEFAULT_PLAYER_MOVEMENT_SPEED 200
-void MovePlayer(Player *player) {
+void MovePlayer(OLD_Player *player) {
   Vector2 force =
       Vector2Scale(GetDesiredVeloctiy(),
                    DEFAULT_PLAYER_MOVEMENT_SPEED * player->stats.movementSpeed);
@@ -62,9 +62,9 @@ void MovePlayer(Player *player) {
                       RETARDATION_SPEED);
 }
 
-void TickPlayer(Player *player) { MovePlayer(player); }
+void TickPlayer(OLD_Player *player) { MovePlayer(player); }
 
-void DrawPlayer(Player *player) {
+void DrawPlayer(OLD_Player *player) {
   DrawCircleV(player->entity.body.pos, player->entity.body.radius,
               PLAYER_COLOR);
 }

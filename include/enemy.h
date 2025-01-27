@@ -40,7 +40,7 @@ typedef struct EnemySpawner {
 void InitializeEnemySpawner(EnemySpawner *enemySpawner);
 void RemoveAllEnemies();
 // uses camera and level for spawning, call this after ticking camera
-void TickEnemySpawner(Camera2D *camera, Player *player);
+void TickEnemySpawner(Camera2D *camera, OLD_Player *player);
 void DrawEnemy(Enemy *enemy);
 void DrawEnemies();
 void HandleEnemyDeath(Enemy *enemy);

@@ -109,7 +109,7 @@ static void Shoot(Vector2 origin, float rangeModifier) {
   arrput(bullets, newBullet);
 }
 
-static void Tick(Player *player) {
+static void Tick(OLD_Player *player) {
   static double lastShot = 0;
   double now = time_in_seconds();
   if (now - lastShot > FLAME_FIRE_DELAY) {

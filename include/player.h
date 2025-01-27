@@ -1,7 +1,7 @@
 #pragma once
 #include <stdlib.h>
 
-typedef struct Player Player;
+typedef struct OLD_Player OLD_Player;
 #include "entity.h"
 #include "item.h"
 #include "level.h"
@@ -21,14 +21,14 @@ typedef struct PlayerStats {
   float attackSpeed;
   float range;
 } PlayerStats;
-struct Player {
+struct OLD_Player {
   Entity entity;
   int experience;
   PlayerStats stats;
   PlayerItem **items;
 };
 
-Player InitialPlayer();
+OLD_Player InitialPlayer();
 
-void TickPlayer(Player *player);
-void DrawPlayer(Player *player);
+void TickPlayer(OLD_Player *player);
+void DrawPlayer(OLD_Player *player);

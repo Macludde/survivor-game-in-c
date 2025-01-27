@@ -7,13 +7,13 @@ typedef struct PlayerItem PlayerItem;
 
 struct PlayerItem {
   int order;  // defines consistent order of items
-  void (*beforeTick)(Player *);
-  void (*afterTick)(Player *);
+  void (*beforeTick)(OLD_Player *);
+  void (*afterTick)(OLD_Player *);
   void (*onDeath)(float);                 // overkill
   void (*onKill)(float, struct Enemy *);  // overkill, shot enemy
   void (*onMove)(Vector2);                // direction
-  void (*drawBackground)(Player *);
-  void (*drawForeground)(Player *);
+  void (*drawBackground)(OLD_Player *);
+  void (*drawForeground)(OLD_Player *);
 };
 
 typedef PlayerItem **Items;
@@ -21,10 +21,10 @@ extern Items items;
 
 void InitializeItems();
 void FreeItems();
-void ItemsCallBeforeTick(Player *player);
-void ItemsCallAfterTick(Player *player);
-void ItemsCallDrawBackground(Player *player);
-void ItemsCallDrawForeground(Player *player);
+void ItemsCallBeforeTick(OLD_Player *player);
+void ItemsCallAfterTick(OLD_Player *player);
+void ItemsCallDrawBackground(OLD_Player *player);
+void ItemsCallDrawForeground(OLD_Player *player);
 
 /*
 Items to build:

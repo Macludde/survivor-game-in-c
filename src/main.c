@@ -8,10 +8,11 @@
 #include "helpers.h"
 #include "item.h"
 #include "level.h"
+#include "modules/base.h"
 #include "modules/camera.h"
+#include "modules/controls.h"
 #include "modules/movement.h"
 #include "modules/render.h"
-#include "player.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "resource_dir.h"  // utility header for SearchAndSetResourceDir
@@ -41,10 +42,12 @@ void SetupWindow() {
 int main() {
   double beforeSetup = time_in_seconds();
   world = ecs_init();
-  // ecs_set_threads(world, 8);
+  ecs_set_threads(world, 8);
+  ECS_IMPORT(world, Base);
   ECS_IMPORT(world, Movement);
   ECS_IMPORT(world, Render);
   ECS_IMPORT(world, Camera);
+  ECS_IMPORT(world, Controls);
 
   SetupWindow();
   level = (Level){
@@ -66,6 +69,7 @@ int main() {
               .rotation = 0.0f,
               .zoom = 1.0f,
           });
+  ecs_add_id(world, player, Player);
 
   const FollowCam *cam = ecs_get(world, player, FollowCam);
 

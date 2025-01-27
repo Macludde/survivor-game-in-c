@@ -4,4 +4,4 @@
 
 // has some elastic collisions
 void HandleAllEnemyCollisions(Enemy *allEnemies, int enemyCount,
-                              Player *player);
+                              OLD_Player *player);

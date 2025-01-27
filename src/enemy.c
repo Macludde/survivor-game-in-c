@@ -169,7 +169,7 @@ bool SpawnEnemy(Camera2D *camera) {
   return true;
 }
 
-void TickEnemySpawner(Camera2D *camera, Player *player) {
+void TickEnemySpawner(Camera2D *camera, OLD_Player *player) {
   // if 2 seconds has passed, spawn enemy
   double now = time_in_seconds();
   if (now - enemySpawner.lastSpawnTime > 1.2) {

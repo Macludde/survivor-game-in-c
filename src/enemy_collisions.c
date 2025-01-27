@@ -45,7 +45,7 @@ void CollisionsWithTrees(Enemy *enemy) {
 }
 
 void HandleAllEnemyCollisions(Enemy *allEnemies, int highestEnemyIndex,
-                              Player *player) {
+                              OLD_Player *player) {
   for (int i = 0; i < highestEnemyIndex; ++i) {
     if (!allEnemies[i].spawned) continue;
     Enemy *curr = &allEnemies[i];

@@ -23,25 +23,25 @@ void FreeItems() {
   arrfree(items);
 }
 
-void ItemsCallBeforeTick(Player *player) {
+void ItemsCallBeforeTick(OLD_Player *player) {
   for (int i = 0; i < arrlen(player->items); ++i) {
     if (player->items[i]->beforeTick == NULL) continue;
     player->items[i]->beforeTick(player);
   }
 }
-void ItemsCallAfterTick(Player *player) {
+void ItemsCallAfterTick(OLD_Player *player) {
   for (int i = 0; i < arrlen(player->items); ++i) {
     if (player->items[i]->afterTick == NULL) continue;
     player->items[i]->afterTick(player);
   }
 }
-void ItemsCallDrawBackground(Player *player) {
+void ItemsCallDrawBackground(OLD_Player *player) {
   for (int i = 0; i < arrlen(player->items); ++i) {
     if (player->items[i]->drawBackground == NULL) continue;
     player->items[i]->drawBackground(player);
   }
 }
-void ItemsCallDrawForeground(Player *player) {
+void ItemsCallDrawForeground(OLD_Player *player) {
   for (int i = 0; i < arrlen(player->items); ++i) {
     if (player->items[i]->drawForeground == NULL) continue;
     player->items[i]->drawForeground(player);

@@ -73,7 +73,7 @@ static Vector2 ClosestEnemy(Vector2 pos, float maxRange) {
   return closest;
 }
 
-static bool SpawnBullet(Player *player) {
+static bool SpawnBullet(OLD_Player *player) {
   Vector2 origin = player->entity.body.pos;
   Vector2 closestEnemy = ClosestEnemy(origin, SG_RANGE * player->stats.range);
   if (closestEnemy.x == INFINITY) return false;  // no enemies in range
@@ -95,7 +95,7 @@ static bool SpawnBullet(Player *player) {
   return true;
 }
 
-static void Tick(Player *player) {
+static void Tick(OLD_Player *player) {
   static double lastShot = 0;
   Vector2 playerPos = player->entity.body.pos;
   double now = time_in_seconds();
@@ -119,7 +119,7 @@ static void DrawBullet(int index) {
   DrawCircleV(bullet.body.pos, bullet.body.radius, BLUE);
 }
 
-static void Draw(Player *player) {
+static void Draw(OLD_Player *player) {
   for (int i = 0; i < arrlen(bullets); ++i) {
     DrawBullet(i);
   }
