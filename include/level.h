@@ -7,36 +7,12 @@
 // rendering
 #define TREE_TRUNK_WIDTH 20
 #define TREE_TRUNK_HEIGHT 40
-#include <stdbool.h>
 
-#include "entity.h"
-#include "physics.h"
-#include "raylib.h"
-
-typedef Entity Tree;
+#include "flecs.h"
 
 typedef struct Level {
   int width;
   int height;
-  int treeCount;
-  Tree *trees;
-  Entity **allEntities;  // dynamic array of entity pointers
 } Level;
 
-Level *AllocateLevel(int width, int height, int treeCount);
-/**
- * Assumes level already has width, height and treeCount set
- */
-void InitializeLevel(Level *level);
-void DrawLevelBackground();  // Draws stuff which should appear behind
-                             // everything else
-void DrawLevelForeground();  // Draws stuff which should appear in
-                             // front of everything else
-Rectangle TreeRectangle(Tree tree);
-// @deprecated
-inline static PhysicsBody GetTreeBody(Tree tree) { return tree.body; }
-// @deprecated
-inline static Entity GetTreeEntity(Tree tree) { return tree; }
-
-void AddEntity(Entity *entity);
-void RemoveEntity(Entity *entity);
+void InitializeLevel(ecs_world_t *world, Level *level);

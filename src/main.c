@@ -39,22 +39,32 @@ void SetupWindow() {
   InitWindow(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, GAME_NAME);
 }
 
+static void MovePlayer(ecs_iter_t *it) {
+  const InputStates *i = ecs_singleton_get(it->world, InputStates);
+  Acceleration *a = ecs_field(it, Acceleration, 0);
+
+  a->x += i->WASD.x * 200;
+  a->y += i->WASD.y * 200;
+}
+
 int main() {
   double beforeSetup = time_in_seconds();
+  SetupWindow();
+
   world = ecs_init();
   ecs_set_threads(world, 8);
   ECS_IMPORT(world, Base);
   ECS_IMPORT(world, Movement);
-  ECS_IMPORT(world, Render);
   ECS_IMPORT(world, Camera);
+  ECS_IMPORT(world, Render);
   ECS_IMPORT(world, Controls);
+  ECS_SYSTEM(world, MovePlayer, EcsOnLoad, movement.Acceleration, base.Player);
 
-  SetupWindow();
   level = (Level){
-      .width = 10000,
-      .height = 10000,
+      .width = 200 * 5,
+      .height = 200 * 5,
   };
-  InitializeLevel(&level);
+  InitializeLevel(world, &level);
 
   ecs_entity_t player = ecs_entity(world, {.name = "Player"});
   ecs_set(world, player, Position, {0, 0});
@@ -62,16 +72,7 @@ int main() {
   ecs_set(world, player, Acceleration, {0, 0});
   ecs_set(world, player, CircleShape,
           {.offset = {0, 0}, .radius = 20, .color = BLUE});
-  ecs_set(world, player, FollowCam,
-          {
-              .offset = {DEFAULT_SCREEN_WIDTH / 2, DEFAULT_SCREEN_HEIGHT / 2},
-              .target = {0, 0},
-              .rotation = 0.0f,
-              .zoom = 1.0f,
-          });
   ecs_add_id(world, player, Player);
-
-  const FollowCam *cam = ecs_get(world, player, FollowCam);
 
   // InitializeEnemySpawner(&enemySpawner);
 
@@ -92,9 +93,7 @@ int main() {
     // drawing
     BeginDrawing();
     ClearBackground(WHITE);
-
     ecs_progress(world, GetFrameTime());
-    DrawCircle(40, 40, 10, RED);
     // draw world
     // DrawLevelBackground();
     // DrawEnemies();
@@ -112,15 +111,9 @@ int main() {
 #ifdef DEBUG
     DrawText(TextFormat("TARGET: %i", targetFps), 10, 40, 20, DARKGRAY);
 #endif
-
-    // end the frame and get ready for the next one
     EndDrawing();
   }
 
-  free(level.trees);
-  free(enemySpawner.enemies);
-  arrfree(level.allEntities);
-  FreeItems();
   ecs_fini(world);
 
   // destroy the window and cleanup the OpenGL context

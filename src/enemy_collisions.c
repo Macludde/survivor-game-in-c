@@ -28,20 +28,21 @@ void CollisionsWithOtherEnemies(Enemy *enemy, Enemy *allEnemies, int startAt,
 }
 
 void CollisionsWithTrees(Enemy *enemy) {
-  for (int treeIndex = 0; treeIndex < level.treeCount; ++treeIndex) {
-    PhysicsBody treeBody = GetTreeBody(level.trees[treeIndex]);
-    if (CheckLenientCollision(enemy->entity.body, treeBody, 4)) {
-      // enemy is close to tree
-      ElasticCollision(&enemy->entity.body, &treeBody);
+  // for (int treeIndex = 0; treeIndex < level.treeCount; ++treeIndex) {
+  //   PhysicsBody treeBody = GetTreeBody(level.trees[treeIndex]);
+  //   if (CheckLenientCollision(enemy->entity.body, treeBody, 4)) {
+  //     // enemy is close to tree
+  //     ElasticCollision(&enemy->entity.body, &treeBody);
 
-      Vector2 turnAwayDirection = Vector2Normalize(
-          Vector2Subtract(enemy->entity.body.pos, treeBody.pos));
-      float rotationSpeed =
-          GetEnemyRotationSpeedGivenVelocity(enemy->entity.body.velocity) / 3;
-      enemy->rotation = LerpRotationAngle(enemy->rotation, turnAwayDirection,
-                                          rotationSpeed * GetFrameTime());
-    }
-  }
+  //     Vector2 turnAwayDirection = Vector2Normalize(
+  //         Vector2Subtract(enemy->entity.body.pos, treeBody.pos));
+  //     float rotationSpeed =
+  //         GetEnemyRotationSpeedGivenVelocity(enemy->entity.body.velocity) /
+  //         3;
+  //     enemy->rotation = LerpRotationAngle(enemy->rotation, turnAwayDirection,
+  //                                         rotationSpeed * GetFrameTime());
+  //   }
+  // }
 }
 
 void HandleAllEnemyCollisions(Enemy *allEnemies, int highestEnemyIndex,

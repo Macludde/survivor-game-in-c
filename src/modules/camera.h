@@ -7,13 +7,11 @@
 #define CAMERA_MOVEMENT_SPEED 2.0f
 
 // declare the Component type
-typedef Camera2D FollowCam;
-
-extern ECS_COMPONENT_DECLARE(FollowCam);
 
 extern ECS_SYSTEM_DECLARE(MoveCameraToPosition);
 extern ECS_SYSTEM_DECLARE(Begin2D);
 extern ECS_SYSTEM_DECLARE(End2D);
+extern ECS_SYSTEM_DECLARE(CameraHandleWindowResize);
 #ifdef DEBUG
 extern ECS_SYSTEM_DECLARE(MouseScrollZoom);
 #endif

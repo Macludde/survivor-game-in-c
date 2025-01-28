@@ -40,9 +40,9 @@ static void TickFlame(int index) {
     arrdelswap(splahes, index);
     return;
   }
-  EntityAreaTakeDamage(level.allEntities, arrlen(level.allEntities),
-                       splahes[index].pos, FLAME_SIZE,
-                       TICK_DAMAGE * GetFrameTime());
+  // EntityAreaTakeDamage(level.allEntities, arrlen(level.allEntities),
+  //                      splahes[index].pos, FLAME_SIZE,
+  //                      TICK_DAMAGE * GetFrameTime());
   // damage everything in circle, enemies and player
 }
 

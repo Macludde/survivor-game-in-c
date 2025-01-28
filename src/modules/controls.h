@@ -16,7 +16,6 @@ typedef struct InputStates {
 extern ECS_COMPONENT_DECLARE(InputStates);
 
 extern ECS_SYSTEM_DECLARE(CaptureKeys);
-extern ECS_SYSTEM_DECLARE(MovePlayer);
 
 // The import function name has to follow the convention: <ModuleName>Import
 void ControlsImport(ecs_world_t *world);

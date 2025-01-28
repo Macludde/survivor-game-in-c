@@ -107,9 +107,10 @@ static void Tick(OLD_Player *player) {
     Bullet *bullet = &bullets[i];
     bullet->body.pos = Vector2Add(
         bullet->body.pos, Vector2Scale(bullet->body.velocity, GetFrameTime()));
-    if (HandleBulletCollisions(i, level.allEntities, arrlen(level.allEntities),
-                               SG_DAMAGE * player->stats.damage))
-      continue;
+    // if (HandleBulletCollisions(i, level.allEntities,
+    // arrlen(level.allEntities),
+    //                            SG_DAMAGE * player->stats.damage))
+    //   continue;
     if (HandleBulletOffScreen(i)) continue;
   }
 }
