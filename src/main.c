@@ -45,8 +45,8 @@ static void MovePlayer(ecs_iter_t *it) {
   const InputStates *i = ecs_singleton_get(it->world, InputStates);
   Acceleration *a = ecs_field(it, Acceleration, 0);
 
-  a->x += i->WASD.x * 1000;
-  a->y += i->WASD.y * 1000;
+  a->x += i->WASD.x * 400;
+  a->y += i->WASD.y * 400;
 }
 
 int main() {
@@ -79,6 +79,7 @@ int main() {
           {.offset = {0, 0}, .radius = 20, .color = BLUE});
   ecs_set(world, player, Collidable, {.radius = 20});
   ecs_set(world, player, Mass, {200});
+  ecs_set(world, player, MaxSpeed, {200});
   ecs_add_id(world, player, Player);
 
   // InitializeEnemySpawner(&enemySpawner);
