@@ -10,8 +10,10 @@
 #include "level.h"
 #include "modules/base.h"
 #include "modules/camera.h"
+#include "modules/collisions.h"
 #include "modules/controls.h"
 #include "modules/movement.h"
+#include "modules/physics.h"
 #include "modules/render.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -43,8 +45,8 @@ static void MovePlayer(ecs_iter_t *it) {
   const InputStates *i = ecs_singleton_get(it->world, InputStates);
   Acceleration *a = ecs_field(it, Acceleration, 0);
 
-  a->x += i->WASD.x * 200;
-  a->y += i->WASD.y * 200;
+  a->x += i->WASD.x * 1000;
+  a->y += i->WASD.y * 1000;
 }
 
 int main() {
@@ -56,8 +58,11 @@ int main() {
   ECS_IMPORT(world, Base);
   ECS_IMPORT(world, Movement);
   ECS_IMPORT(world, Camera);
-  ECS_IMPORT(world, Render);
   ECS_IMPORT(world, Controls);
+  ECS_IMPORT(world, Collisions);
+  ECS_IMPORT(world, Physics);
+  ECS_IMPORT(world, Render);
+
   ECS_SYSTEM(world, MovePlayer, EcsOnLoad, movement.Acceleration, base.Player);
 
   level = (Level){
@@ -72,6 +77,8 @@ int main() {
   ecs_set(world, player, Acceleration, {0, 0});
   ecs_set(world, player, CircleShape,
           {.offset = {0, 0}, .radius = 20, .color = BLUE});
+  ecs_set(world, player, Collidable, {.radius = 20});
+  ecs_set(world, player, Mass, {200});
   ecs_add_id(world, player, Player);
 
   // InitializeEnemySpawner(&enemySpawner);
@@ -86,8 +93,9 @@ int main() {
 #ifdef DEBUG
     HandleDebuggingKeys();
     if (IsKeyPressed(KEY_F1)) {
-      RemoveAllEnemies();
-      // player.entity.body.pos = Vector2Zero();
+      // RemoveAllEnemies();
+      Position *p = ecs_get(world, player, Position);
+      *p = Vector2Zero();
     }
 #endif
     // drawing

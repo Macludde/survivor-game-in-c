@@ -2,7 +2,9 @@
 
 #include "flecs.h"
 #include "helpers.h"
+#include "modules/collisions.h"
 #include "modules/movement.h"
+#include "modules/physics.h"
 #include "modules/render.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -13,6 +15,7 @@ ecs_entity_t TreePrefab(ecs_world_t *world) {
   ecs_entity_t tree =
       ecs_entity(world, {.name = "Tree", .add = ecs_ids(EcsPrefab)});
   ecs_add(world, tree, Position);
+  ecs_set(world, tree, Velocity, {0, 0});
   ecs_set_pair(world, tree, RectShape, BackgroundRenderLayer,
                {
                    .offset = {0, 0},
@@ -25,6 +28,9 @@ ecs_entity_t TreePrefab(ecs_world_t *world) {
                    .radius = TREE_COLLISION_RADIUS,
                    .color = GREEN,
                });
+
+  ecs_set(world, tree, Collidable, {.radius = TREE_TRUNK_HEIGHT / 2});
+  ecs_set(world, tree, Mass, {10000});
 
   return tree;
 }

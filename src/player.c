@@ -3,7 +3,7 @@
 #include "enemy.h"
 #include "helpers.h"
 #include "level.h"
-#include "physics.h"
+#include "physics_math.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -58,8 +58,8 @@ void MovePlayer(OLD_Player *player) {
                    DEFAULT_PLAYER_MOVEMENT_SPEED * player->stats.movementSpeed);
   if (Vector2LengthSqr(force) != 0)
     ApplyAcceleration(&player->entity.body, force);
-  MoveBodyWithWeights(&player->entity.body, ACCELERATION_SPEED,
-                      RETARDATION_SPEED);
+  // MoveBodyWithWeights(&player->entity.body, ACCELERATION_SPEED,
+  //                     RETARDATION_SPEED);
 }
 
 void TickPlayer(OLD_Player *player) { MovePlayer(player); }

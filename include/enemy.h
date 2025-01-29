@@ -4,7 +4,7 @@ typedef struct Enemy Enemy;
 
 #include "entity.h"
 #include "level.h"
-#include "physics.h"
+#include "physics_math.h"
 #include "player.h"
 #include "raylib.h"
 

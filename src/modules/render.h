@@ -30,6 +30,7 @@ extern ECS_COMPONENT_DECLARE(RectShape);
   ECS_SYSTEM_DECLARE(Render##name);   \
   ECS_SYSTEM_DECLARE(FGRender##name);
 
+extern ECS_SYSTEM_DECLARE(RenderCollidables);
 EXTERN_DECLARE_RENDER_SYSTEM(RenderCircle);
 EXTERN_DECLARE_RENDER_SYSTEM(RenderRect);
 

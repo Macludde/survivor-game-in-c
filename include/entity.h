@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #include "debug.h"
-#include "physics.h"
+#include "physics_math.h"
 #include "raylib.h"
 
 enum EntityType { ENTITY_TYPE_TREE, ENTITY_TYPE_PLAYER, ENTITY_TYPE_ENEMY };

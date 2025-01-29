@@ -2,7 +2,7 @@
 
 #include "debug.h"
 #include "enemy.h"
-#include "physics.h"
+#include "physics_math.h"
 #include "raylib.h"
 
 float EntityTakeDamage(Entity *entity, float damage) {
@@ -38,7 +38,7 @@ void HandleAllRigidBodyCollisions(Entity *entities[], int count) {
           entities[j]->type == ENTITY_TYPE_ENEMY)
         continue;
       if (CheckCollision(entities[i]->body, entities[j]->body)) {
-        RigidCollision(&entities[i]->body, &entities[j]->body);
+        // RigidCollision(&entities[i]->body, &entities[j]->body);
       }
     }
   }
@@ -46,7 +46,7 @@ void HandleAllRigidBodyCollisions(Entity *entities[], int count) {
 
 void TickEntities(Entity *entities[], int count) {
   for (int i = 0; i < count; ++i) {
-    MoveBody(&entities[i]->body);
+    // MoveBody(&entities[i]->body);
   }
 }
 

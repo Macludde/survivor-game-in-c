@@ -7,7 +7,7 @@
 #include "debug.h"
 #include "enemy_collisions.h"
 #include "helpers.h"
-#include "physics.h"
+#include "physics_math.h"
 #include "player.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -39,7 +39,7 @@ void TickEnemy(Enemy *enemy, Vector2 target, Enemy *allEnemies,
                                ENEMY_MOVEMENT_SPEED);
 
   ApplyAcceleration(&enemy->entity.body, force);
-  MoveBody(&enemy->entity.body);
+  // MoveBody(&enemy->entity.body);
 }
 
 void DrawEnemyWithRotation(Enemy *enemy) {

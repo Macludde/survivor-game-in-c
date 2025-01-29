@@ -15,12 +15,15 @@ typedef struct PhysicsBody {
 } PhysicsBody;
 
 // Updates body stats given its pos, velocity and acceleration
-void MoveBody(PhysicsBody *body);
-void MoveBodyWithWeights(PhysicsBody *body, float accelerationRate,
-                         float retardationRate);
+
 void ApplyForce(PhysicsBody *body, Vector2 force);
 void ApplyAcceleration(PhysicsBody *body, Vector2 forceByMass);
-void RigidCollision(PhysicsBody *body1, PhysicsBody *body2);
+Vector2 CollisionPoint(Vector2 pos1, float radius1, Vector2 pos2,
+                       float radius2);
+
+void RigidCollision(Vector2 collPoint, float overlap, Vector2 *pos,
+                    Vector2 *velocity, float mass, Vector2 *otherPos,
+                    Vector2 *otherVelocity, float otherMass);
 void ElasticCollision(PhysicsBody *body1, PhysicsBody *body2);
 
 bool CheckCollision(PhysicsBody body1, PhysicsBody body2);

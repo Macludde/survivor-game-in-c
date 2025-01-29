@@ -5,7 +5,7 @@ typedef struct OLD_Player OLD_Player;
 #include "entity.h"
 #include "item.h"
 #include "level.h"
-#include "physics.h"
+#include "physics_math.h"
 #include "raylib.h"
 
 // this scales with player speed

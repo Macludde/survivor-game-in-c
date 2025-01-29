@@ -30,7 +30,7 @@ static void BulletHit(int index, Entity *entity, float damage) {
   if (remainingHealth <= 0) {
     // entity died
   } else {
-    RigidCollision(&bullets[index].body, &entity->body);
+    // RigidCollision(&bullets[index].body, &entity->body);
   }
   RemoveBullet(index);
 }

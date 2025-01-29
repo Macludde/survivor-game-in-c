@@ -2,6 +2,7 @@
 
 #include "flecs.h"
 #include "modules/camera.h"
+#include "modules/collisions.h"
 #include "modules/movement.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -9,15 +10,20 @@
 ECS_COMPONENT_DECLARE(CircleShape);
 ECS_COMPONENT_DECLARE(RectShape);
 
+ECS_SYSTEM_DECLARE(RenderCollidables);
 DECLARE_RENDER_SYSTEM(RenderRect);
 DECLARE_RENDER_SYSTEM(RenderCircle);
 
 ECS_DECLARE(BackgroundRenderLayer);
 ECS_DECLARE(ForegroundRenderLayer);
 
-static ecs_query_t *cam_query;
-
-typedef void (*RenderFn)(ecs_iter_t *it, int i);
+static void RenderCollidables(ecs_iter_t *it) {
+  Position *p = ecs_field(it, Position, 0);
+  Collidable *col = ecs_field(it, Collidable, 1);
+  for (int i = 0; i < it->count; ++i) {
+    DrawCircleLinesV(p[i], col[i].radius, PINK);
+  }
+}
 
 static void RenderCircle(ecs_iter_t *it) {
   CircleShape *shape = ecs_field(it, CircleShape, 0);
@@ -48,12 +54,16 @@ static void RenderRect(ecs_iter_t *it) {
 void RenderImport(ecs_world_t *world) {
   ECS_MODULE(world, Render);
   ECS_IMPORT(world, Movement);
+  ECS_IMPORT(world, Collisions);
 
   ECS_COMPONENT_DEFINE(world, CircleShape);
   ECS_COMPONENT_DEFINE(world, RectShape);
 
   ECS_TAG_DEFINE(world, BackgroundRenderLayer);
   ECS_TAG_DEFINE(world, ForegroundRenderLayer);
+
+  ECS_SYSTEM_DEFINE(world, RenderCollidables, EcsOnStore, movement.Position,
+                    collisions.Collidable);
 
   ecs_entity_t ecs_id(BGRenderCircle) = ecs_system(
       world, {
