@@ -3,21 +3,20 @@
 #include <stdlib.h>
 
 #include "debug.h"
-#include "enemy.h"
-#include "entity.h"
 #include "helpers.h"
-#include "item.h"
 #include "level.h"
 #include "modules/base.h"
 #include "modules/camera.h"
 #include "modules/collisions.h"
 #include "modules/controls.h"
+#include "modules/enemy.h"
 #include "modules/movement.h"
 #include "modules/physics.h"
 #include "modules/render.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "resource_dir.h"  // utility header for SearchAndSetResourceDir
+#include "tick.h"
 #define STB_DS_IMPLEMENTATION
 #include "flecs.h"
 #include "lib/stb_ds.h"
@@ -54,6 +53,7 @@ int main() {
   SetupWindow();
 
   world = ecs_init();
+  InitializeTickSource(world);
   ecs_set_threads(world, 8);
   ECS_IMPORT(world, Base);
   ECS_IMPORT(world, Movement);
@@ -62,6 +62,7 @@ int main() {
   ECS_IMPORT(world, Collisions);
   ECS_IMPORT(world, Physics);
   ECS_IMPORT(world, Render);
+  ECS_IMPORT(world, Enemy);
 
   ECS_SYSTEM(world, MovePlayer, EcsOnLoad, movement.Acceleration, base.Player);
 
@@ -82,7 +83,8 @@ int main() {
   ecs_set(world, player, MaxSpeed, {200});
   ecs_add_id(world, player, Player);
 
-  // InitializeEnemySpawner(&enemySpawner);
+  ecs_entity_t enemySpawner = ecs_entity(world, {.name = "EnemySpawner"});
+  ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 100});
 
   // game loop
   while (!IsWindowReady());

@@ -9,6 +9,7 @@ ECS_COMPONENT_DECLARE(Velocity);
 ECS_COMPONENT_DECLARE(Acceleration);
 ECS_COMPONENT_DECLARE(MaxSpeed);
 ECS_COMPONENT_DECLARE(Friction);
+ECS_COMPONENT_DECLARE(Rotation);
 
 ECS_SYSTEM_DECLARE(MovementMove);
 ECS_SYSTEM_DECLARE(MovementAccelerate);
@@ -79,6 +80,7 @@ void MovementImport(ecs_world_t *world) {
   ECS_COMPONENT_DEFINE(world, Acceleration);
   ECS_COMPONENT_DEFINE(world, MaxSpeed);
   ECS_COMPONENT_DEFINE(world, Friction);
+  ECS_COMPONENT_DEFINE(world, Rotation);
 
   ecs_add_pair(world, ecs_id(Velocity), EcsWith, ecs_id(Position));
   ecs_add_pair(world, ecs_id(Acceleration), EcsWith, ecs_id(Velocity));

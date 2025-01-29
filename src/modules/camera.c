@@ -82,6 +82,61 @@ void CameraHandleWindowResize(ecs_iter_t *it) {
   }
 }
 
+// works by getting a point within an area, but not within a disallowed area
+// for example, the entire level might be totalArea, while the actively viewed
+// by camera area is disallowedArea
+static Vector2 _RandomPointInArea(Area disallowedArea, Area totalArea) {
+  Vector2 randomPoint = {0, 0};
+  int iterations = 0;
+  do {
+    ++iterations;
+    randomPoint =
+        (Vector2){GetRandomValue(totalArea.topLeft.x, totalArea.bottomRight.x),
+                  GetRandomValue(totalArea.topLeft.y, totalArea.bottomRight.y)};
+    if (iterations > 1000) {
+      printf("iterations exceeded 1000\n");
+      break;
+    }
+    // do while inside camera bounds
+  } while (randomPoint.x > disallowedArea.topLeft.x &&
+           randomPoint.x < disallowedArea.bottomRight.x &&
+           randomPoint.y > disallowedArea.topLeft.y &&
+           randomPoint.y < disallowedArea.bottomRight.y);
+  return randomPoint;
+}
+
+Area GetCameraBounds() {
+  Vector2 cameraTopLeft = GetScreenToWorld2D((Vector2){0, 0}, camera);
+  Vector2 cameraBottomRight = GetScreenToWorld2D(
+      (Vector2){GetScreenWidth(), GetScreenHeight()}, camera);
+  return (Area){cameraTopLeft, cameraBottomRight};
+}
+
+Area AreaAddBuffer(Area area, float buffer) {
+  return (Area){Vector2SubtractValue(area.topLeft, buffer),
+                Vector2AddValue(area.bottomRight, buffer)};
+}
+
+Vector2 RandomPointOffScreen(float minDistance, float maxDistance) {
+  Area cameraBounds = AreaAddBuffer(GetCameraBounds(), minDistance);
+  return _RandomPointInArea(cameraBounds,
+                            AreaAddBuffer(cameraBounds, maxDistance));
+}
+
+Vector2 ClampedRandomPointOffScreen(float minDistance, float maxDistance,
+                                    Area clampedArea) {
+  Area cameraBounds = AreaAddBuffer(GetCameraBounds(), minDistance);
+  Area outerBounds = AreaAddBuffer(cameraBounds, maxDistance);
+  Area clamped = {
+      Vector2Clamp(outerBounds.topLeft, clampedArea.topLeft,
+                   clampedArea.bottomRight),
+      Vector2Clamp(Vector2AddValue(outerBounds.bottomRight, maxDistance),
+                   clampedArea.topLeft, clampedArea.bottomRight),
+  };
+
+  return _RandomPointInArea(cameraBounds, clamped);
+}
+
 void CameraImport(ecs_world_t *world) {
   screenWidth = GetScreenWidth();
   screenHeight = GetScreenHeight();

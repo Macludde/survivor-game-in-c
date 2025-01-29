@@ -2,7 +2,6 @@
 
 #include <stdbool.h>
 
-#include "entity.h"
 #include "raylib.h"
 #include "raymath.h"
 
