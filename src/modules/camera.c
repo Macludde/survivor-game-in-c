@@ -6,6 +6,9 @@
 #include "raylib.h"
 #include "raymath.h"
 
+static int screenWidth;
+static int screenHeight;
+
 Camera2D camera;
 ECS_COMPONENT_DECLARE(FollowCam);
 
@@ -22,9 +25,19 @@ static void Begin2D(ecs_iter_t *it) { BeginMode2D(camera); }
 static void End2D(ecs_iter_t *it) { EndMode2D(); }
 
 static void MoveCameraToPosition(ecs_iter_t *it) {
-  static int screenWidth;
-  static int screenHeight;
   Position *p = ecs_field(it, Position, 1);
+  float maxDistanceHorizontal = screenWidth * 0.4f;
+  float maxDistanceVertical = screenHeight * 0.4f;
+  if ((int)p[0].x - (int)camera.target.x > maxDistanceHorizontal) {
+    camera.target.x = p[0].x - maxDistanceHorizontal;
+  } else if ((int)p[0].x - (int)camera.target.x < -maxDistanceHorizontal) {
+    camera.target.x = p[0].x + maxDistanceHorizontal;
+  }
+  if ((int)p[0].y - (int)camera.target.y > maxDistanceVertical) {
+    camera.target.y = p[0].y - maxDistanceVertical;
+  } else if ((int)p[0].y - (int)camera.target.y < -maxDistanceVertical) {
+    camera.target.y = p[0].y + maxDistanceVertical;
+  }
   camera.target =
       Vector2Lerp(camera.target, p[0], CAMERA_MOVEMENT_SPEED * it->delta_time);
 }
@@ -63,15 +76,18 @@ bool IsRectOnScreen(Vector2 pos, Vector2 size) {
 
 void CameraHandleWindowResize(ecs_iter_t *it) {
   if (IsWindowResized()) {
-    int width = GetScreenWidth();
-    int height = GetScreenHeight();
-    camera.offset = (Vector2){width / 2.0f, height / 2.0f};
+    screenWidth = GetScreenWidth();
+    screenHeight = GetScreenHeight();
+    camera.offset = (Vector2){screenWidth / 2.0f, screenHeight / 2.0f};
   }
 }
 
 void CameraImport(ecs_world_t *world) {
+  screenWidth = GetScreenWidth();
+  screenHeight = GetScreenHeight();
+
   camera = (Camera2D){
-      .offset = {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f},
+      .offset = {screenWidth / 2.0f, screenHeight / 2.0f},
       .target = {0, 0},
       .rotation = 0.0f,
       .zoom = 1.0f,
@@ -88,7 +104,7 @@ void CameraImport(ecs_world_t *world) {
   // any othe stage before EcsPreStore
   ECS_SYSTEM_DEFINE(world, Begin2D, EcsPreStore);
   ECS_SYSTEM_DEFINE(world, End2D, EcsPostFrame);
-  ECS_SYSTEM_DEFINE(world, CameraHandleWindowResize, EcsPostUpdate);
+  ECS_SYSTEM_DEFINE(world, CameraHandleWindowResize, EcsOnLoad);
 #ifdef DEBUG
   ECS_SYSTEM_DEFINE(world, MouseScrollZoom, EcsPostUpdate);
 #endif
