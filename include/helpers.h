@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "raymath.h"
 
 double time_in_seconds();
 Color SlightColorVariation(Color base);
@@ -16,3 +17,13 @@ float LerpRotationAngle(float angle, Vector2 to, float amount);
 
 // vector should be normalized
 Vector2 LerpRotation(Vector2 from, Vector2 to, float amount);
+
+static inline float SafeInverseMass(float mass) {
+  return (mass <= 1) ? 1.0f : 1.0f / mass;
+}
+
+static inline Vector2 SafeNormalize(Vector2 vec) {
+  float length = Vector2Length(vec);
+  if (length < EPSILON) return Vector2Zero();
+  return Vector2Scale(vec, 1.0f / length);
+}

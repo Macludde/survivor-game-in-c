@@ -1,8 +1,8 @@
-#include "./controls.h"
+#include "modules/controls.h"
 
-#include "./base.h"
-#include "./movement.h"
 #include "flecs.h"
+#include "modules/movement.h"
+#include "modules/player.h"
 #include "raylib.h"
 #include "raymath.h"
 

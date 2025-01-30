@@ -1,8 +1,8 @@
-#include "./collisions.h"
+#include "modules/collisions.h"
 
-#include "./movement.h"
-#include "./physics.h"
 #include "flecs.h"
+#include "modules/movement.h"
+#include "modules/rigidbody.h"
 #include "physics_math.h"
 #include "raylib.h"
 #include "raymath.h"

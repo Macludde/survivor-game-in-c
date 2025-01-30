@@ -5,14 +5,15 @@
 #include "debug.h"
 #include "helpers.h"
 #include "level.h"
-#include "modules/base.h"
 #include "modules/camera.h"
 #include "modules/collisions.h"
 #include "modules/controls.h"
 #include "modules/enemies.h"
+#include "modules/item.h"
 #include "modules/movement.h"
-#include "modules/physics.h"
+#include "modules/player.h"
 #include "modules/render.h"
+#include "modules/rigidbody.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "resource_dir.h"  // utility header for SearchAndSetResourceDir
@@ -54,16 +55,21 @@ int main() {
   world = ecs_init();
   InitializeTickSource(world);
   ecs_set_threads(world, 8);
-  ECS_IMPORT(world, Base);
+  ECS_IMPORT(world, Player);
+  ECS_IMPORT(world, Item);
+
   ECS_IMPORT(world, Movement);
-  ECS_IMPORT(world, Camera);
-  ECS_IMPORT(world, Controls);
   ECS_IMPORT(world, Collisions);
   ECS_IMPORT(world, Physics);
-  ECS_IMPORT(world, Render);
+
   ECS_IMPORT(world, Enemies);
 
-  ECS_SYSTEM(world, MovePlayer, EcsOnLoad, movement.Acceleration, base.Player);
+  ECS_IMPORT(world, Camera);
+  ECS_IMPORT(world, Controls);
+  ECS_IMPORT(world, Render);
+
+  ECS_SYSTEM(world, MovePlayer, EcsOnLoad, movement.Acceleration,
+             player.Player);
 
   level = (Level){
       .width = 200 * 5,
@@ -81,6 +87,8 @@ int main() {
   ecs_set(world, player, Rigidbody, RIGIDBODY(1200));
   ecs_set(world, player, MaxSpeed, {200});
   ecs_add_id(world, player, Player);
+  ecs_entity_t simpleGun = SimpleGun(world);
+  ecs_add_pair(world, player, Holds, simpleGun);
 
   ecs_entity_t enemySpawner = ecs_entity(world, {.name = "EnemySpawner"});
   ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 1000});

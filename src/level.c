@@ -4,8 +4,8 @@
 #include "helpers.h"
 #include "modules/collisions.h"
 #include "modules/movement.h"
-#include "modules/physics.h"
 #include "modules/render.h"
+#include "modules/rigidbody.h"
 #include "raylib.h"
 #include "raymath.h"
 

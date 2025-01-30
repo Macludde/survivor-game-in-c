@@ -1,4 +1,4 @@
-#include "./movement.h"
+#include "modules/movement.h"
 
 #include <math.h>
 
@@ -75,7 +75,7 @@ static void MovementFriction(ecs_iter_t *it) {
   Friction *f = ecs_field(it, Friction, 1);
 
   for (int i = 0; i < it->count; i++) {
-    float frictionVal = f ? f[i] : DEFAULT_FRICTION;
+    float frictionVal = f != NULL ? f[i] : DEFAULT_FRICTION;
     // Scale velocity down each tick without affecting acceleration directly
     if (Vector2LengthSqr(v[i]) > EPSILON) {
       v[i] = Vector2Scale(v[i], 1.0f - frictionVal * it->delta_time);

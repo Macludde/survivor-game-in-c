@@ -1,8 +1,8 @@
-#include "./camera.h"
+#include "modules/camera.h"
 
-#include "./base.h"
-#include "./movement.h"
 #include "flecs.h"
+#include "modules/movement.h"
+#include "modules/player.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -149,10 +149,10 @@ void CameraImport(ecs_world_t *world) {
   };
   ECS_MODULE(world, Camera);
   ECS_IMPORT(world, Movement);
-  ECS_IMPORT(world, Base);
+  ECS_IMPORT(world, Player);
   Position a = {0, 0};
 
-  ECS_SYSTEM_DEFINE(world, MoveCameraToPosition, EcsPostUpdate, base.Player,
+  ECS_SYSTEM_DEFINE(world, MoveCameraToPosition, EcsPostUpdate, player.Player,
                     movement.Position);
 
   // on store is 2d camera rendering, UI rendering is done in

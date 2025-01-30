@@ -1,16 +1,16 @@
-#include "./enemies.h"
+#include "modules/enemies.h"
 
 #include <stdbool.h>
 
-#include "./base.h"
-#include "./camera.h"
-#include "./collisions.h"
-#include "./movement.h"
-#include "./physics.h"
-#include "./render.h"
 #include "flecs.h"
 #include "helpers.h"
 #include "level.h"
+#include "modules/camera.h"
+#include "modules/collisions.h"
+#include "modules/movement.h"
+#include "modules/player.h"
+#include "modules/render.h"
+#include "modules/rigidbody.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "tick.h"
@@ -124,11 +124,11 @@ void EnemiesImport(ecs_world_t *world) {
   ECS_MODULE(world, Enemies);
 
   ECS_IMPORT(world, Movement);
-  ECS_IMPORT(world, Base);
+  ECS_IMPORT(world, Player);
   ECS_COMPONENT_DEFINE(world, EnemySpawner);
   ECS_TAG_DEFINE(world, Enemy);
 
-  playerQuery = ecs_query(world, {.expr = "movement.Position, base.Player"});
+  playerQuery = ecs_query(world, {.expr = "movement.Position, player.Player"});
 
   ECS_SYSTEM_DEFINE(world, SpawnEnemy, EcsOnLoad, EnemySpawner);
   ECS_SYSTEM_DEFINE(world, EnemyTargetPlayer, EcsPreUpdate,
