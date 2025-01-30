@@ -9,6 +9,7 @@
 #include "modules/collisions.h"
 #include "modules/controls.h"
 #include "modules/enemies.h"
+#include "modules/health.h"
 #include "modules/item.h"
 #include "modules/movement.h"
 #include "modules/player.h"
@@ -56,6 +57,7 @@ int main() {
   InitializeTickSource(world);
   ecs_set_threads(world, 8);
   ECS_IMPORT(world, Player);
+  ECS_IMPORT(world, Health);
   ECS_IMPORT(world, Item);
 
   ECS_IMPORT(world, Movement);
@@ -86,6 +88,7 @@ int main() {
   ecs_set(world, player, Collidable, {.radius = 20});
   ecs_set(world, player, Rigidbody, RIGIDBODY(1200));
   ecs_set(world, player, MaxSpeed, {200});
+  ecs_set(world, player, Killable, KILLABLE(100));
   ecs_add_id(world, player, Player);
   ecs_entity_t simpleGun = SimpleGun(world);
   ecs_add_pair(world, player, Holds, simpleGun);

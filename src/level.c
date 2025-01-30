@@ -3,6 +3,7 @@
 #include "flecs.h"
 #include "helpers.h"
 #include "modules/collisions.h"
+#include "modules/health.h"
 #include "modules/movement.h"
 #include "modules/render.h"
 #include "modules/rigidbody.h"
@@ -32,6 +33,7 @@ ecs_entity_t TreePrefab(ecs_world_t *world) {
   ecs_set(world, tree, Collidable, {.radius = TREE_TRUNK_HEIGHT / 2});
   ecs_set(world, tree, Rigidbody,
           RIGIDBODY(INT16_MAX));  // somewhat large number
+  ecs_set(world, tree, Killable, KILLABLE(100));
 
   return tree;
 }

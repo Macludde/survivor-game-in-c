@@ -3,6 +3,7 @@
 #include "flecs.h"
 #include "helpers.h"
 #include "modules/collisions.h"
+#include "modules/health.h"
 #include "modules/movement.h"
 #include "modules/player.h"
 #include "modules/render.h"
@@ -17,6 +18,7 @@ ECS_COMPONENT_DECLARE(Damage);
 ECS_DECLARE(Holds);  // Holds(Player, Weapon)
 
 ECS_SYSTEM_DECLARE(FireProjectiles);
+ECS_SYSTEM_DECLARE(DamageOnCollision);
 
 ecs_entity_t SimpleGun(ecs_world_t *world) {
   ecs_entity_t weapon = ecs_new(world);
@@ -93,10 +95,22 @@ void FireProjectiles(ecs_iter_t *it) {
   }
 }
 
+void DamageOnCollision(ecs_iter_t *it) {
+  Damage *damage = ecs_field(it, Damage, 0);
+  Killable *killable = ecs_field(it, Killable, 2);
+  for (int i = 0; i < it->count; ++i) {
+    ecs_entity_t bullet = it->entities[i];
+    killable[i].health -= damage[i];
+    ecs_delete(it->world, bullet);
+  }
+}
+
 void ItemImport(ecs_world_t *world) {
   ECS_MODULE(world, Item);
   ECS_IMPORT(world, Player);
   ECS_IMPORT(world, Movement);
+  ECS_IMPORT(world, Collisions);
+  ECS_IMPORT(world, Health);
 
   ECS_COMPONENT_DEFINE(world, ProjectileShooter);
   ECS_COMPONENT_DEFINE(world, Damage);
@@ -109,4 +123,8 @@ void ItemImport(ecs_world_t *world) {
 
   ECS_SYSTEM_DEFINE(world, FireProjectiles, EcsOnUpdate, player.Player($this),
                     Holds($this, $other), ProjectileShooter($other), movement.Position($this), ?TargetsClosestEnemy);
+  ECS_SYSTEM_DEFINE(world, DamageOnCollision, EcsOnUpdate, Damage($this),
+                    collisions.CollidesWith($this, $other),
+                    health.Killable($other), !player.Player($other),
+                    Projectile($this));
 }

@@ -7,6 +7,7 @@
 #include "level.h"
 #include "modules/camera.h"
 #include "modules/collisions.h"
+#include "modules/health.h"
 #include "modules/movement.h"
 #include "modules/player.h"
 #include "modules/render.h"
@@ -40,6 +41,7 @@ ecs_entity_t CreateEnemyPrefab(ecs_world_t *world) {
   ecs_add(world, enemy, RectShape);
   ecs_add(world, enemy, Rigidbody);
   ecs_add(world, enemy, Collidable);
+  ecs_set(world, enemy, Killable, KILLABLE(20));
 
   return enemy;
 }

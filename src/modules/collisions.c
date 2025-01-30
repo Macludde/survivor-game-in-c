@@ -63,7 +63,7 @@ void CollisionsImport(ecs_world_t *world) {
           .entity = ecs_entity(world,
                                {
                                    .name = "Collide",
-                                   .add = ecs_ids(ecs_dependson(EcsOnValidate)),
+                                   .add = ecs_ids(ecs_dependson(EcsPreUpdate)),
                                }),
           .query.expr = "[in] Collidable, [in] movement.Position",
           .callback = Collide,
