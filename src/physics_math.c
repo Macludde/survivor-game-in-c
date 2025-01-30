@@ -29,34 +29,34 @@ Vector2 CollisionPoint(Vector2 pos1, float radius1, Vector2 pos2,
 
 #define BOUNCINESS 0.5f
 // mass = 0 means it won't change velocity
-void RigidCollision(Vector2 collPoint, float overlap, Vector2 *pos,
-                    Vector2 *velocity, float mass, Vector2 *otherPos,
-                    Vector2 *otherVelocity, float otherMass) {
-  // Calculate new velocities
-  Vector2 normal = Vector2Normalize(Vector2Subtract(*pos, *otherPos));
-  Vector2 relativeVelocity = Vector2Subtract(*velocity, *otherVelocity);
-  float velocityAlongNormal = Vector2DotProduct(relativeVelocity, normal);
+// void RigidCollision(Vector2 collPoint, float overlap, Vector2 *pos,
+//                     Vector2 *velocity, float mass, Vector2 *otherPos,
+//                     Vector2 *otherVelocity, float otherMass) {
+//   // Calculate new velocities
+//   Vector2 normal = Vector2Normalize(Vector2Subtract(*pos, *otherPos));
+//   Vector2 relativeVelocity = Vector2Subtract(*velocity, *otherVelocity);
+//   float velocityAlongNormal = Vector2DotProduct(relativeVelocity, normal);
 
-  if (velocityAlongNormal > 0) return;
+//   if (velocityAlongNormal > 0) return;
 
-  float e = BOUNCINESS;  // Coefficient of restitution
-  float j = -(1 + e) * velocityAlongNormal;
-  float invMass1 = (mass == 0) ? 0 : 1.0f / mass;
-  float invMass2 = (otherMass == 0) ? 0 : 1.0f / otherMass;
-  j /= invMass1 + invMass2;
+//   float e = BOUNCINESS;  // Coefficient of restitution
+//   float j = -(1 + e) * velocityAlongNormal;
+//   float invMass1 = (mass == 0) ? 0 : 1.0f / mass;
+//   float invMass2 = (otherMass == 0) ? 0 : 1.0f / otherMass;
+//   j /= invMass1 + invMass2;
 
-  Vector2 impulse = Vector2Scale(normal, j);
-  *velocity = Vector2Subtract(*velocity, Vector2Scale(impulse, 1.0f / mass));
-  *otherVelocity =
-      Vector2Add(*otherVelocity, Vector2Scale(impulse, 1.0f / otherMass));
+//   Vector2 impulse = Vector2Scale(normal, j);
+//   *velocity = Vector2Subtract(*velocity, Vector2Scale(impulse, 1.0f / mass));
+//   *otherVelocity =
+//       Vector2Add(*otherVelocity, Vector2Scale(impulse, 1.0f / otherMass));
 
-  // Adjust positions to avoid overlap
-  Vector2 correction =
-      Vector2Scale(normal, overlap / ((1.0f / mass) + (1.0f / otherMass)));
-  *pos = Vector2Add(*pos, Vector2Scale(correction, 1.0f / mass));
-  *otherPos =
-      Vector2Subtract(*otherPos, Vector2Scale(correction, 1.0f / otherMass));
-}
+//   // Adjust positions to avoid overlap
+//   Vector2 correction =
+//       Vector2Scale(normal, overlap / ((1.0f / mass) + (1.0f / otherMass)));
+//   *pos = Vector2Add(*pos, Vector2Scale(correction, 1.0f / mass));
+//   *otherPos =
+//       Vector2Subtract(*otherPos, Vector2Scale(correction, 1.0f / otherMass));
+// }
 
 void ElasticCollision(PhysicsBody *body1, PhysicsBody *body2) {
   Vector2 delta = Vector2Subtract(body1->pos, body2->pos);
@@ -77,23 +77,4 @@ bool CheckLenientCollision(PhysicsBody body1, PhysicsBody body2,
                            float leniency) {
   return CheckCollisionCircles(body1.pos, body1.radius * leniency, body2.pos,
                                body2.radius * leniency);
-}
-
-// angle in radians, vector should be normalized
-float LerpRotationAngle(float angle, Vector2 to, float amount) {
-  Vector3 unit = (Vector3){1, 0, 0};
-  Quaternion currentRotation = QuaternionFromEuler(0, 0, angle);
-  Quaternion targetRotation =
-      QuaternionFromVector3ToVector3(unit, (Vector3){to.x, to.y, 0});
-  currentRotation =
-      QuaternionSlerp(currentRotation, targetRotation, amount > 1 ? 1 : amount);
-  return QuaternionToEuler(currentRotation).z;
-}
-
-// vector should be normalized
-Vector2 LerpRotation(Vector2 from, Vector2 to, float amount) {
-  float angle = Vector2Angle((Vector2){1, 0}, from);
-  angle = LerpRotationAngle(angle, to, amount);
-
-  return Vector2Rotate((Vector2){1, 0}, angle);
 }

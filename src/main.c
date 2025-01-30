@@ -9,7 +9,7 @@
 #include "modules/camera.h"
 #include "modules/collisions.h"
 #include "modules/controls.h"
-#include "modules/enemy.h"
+#include "modules/enemies.h"
 #include "modules/movement.h"
 #include "modules/physics.h"
 #include "modules/render.h"
@@ -28,7 +28,6 @@
 extern int targetFps;
 ecs_world_t *world;
 Level level;
-EnemySpawner enemySpawner;
 extern ecs_world_t *world;
 
 void SetupWindow() {
@@ -62,7 +61,7 @@ int main() {
   ECS_IMPORT(world, Collisions);
   ECS_IMPORT(world, Physics);
   ECS_IMPORT(world, Render);
-  ECS_IMPORT(world, Enemy);
+  ECS_IMPORT(world, Enemies);
 
   ECS_SYSTEM(world, MovePlayer, EcsOnLoad, movement.Acceleration, base.Player);
 
@@ -79,12 +78,12 @@ int main() {
   ecs_set(world, player, CircleShape,
           {.offset = {0, 0}, .radius = 20, .color = BLUE});
   ecs_set(world, player, Collidable, {.radius = 20});
-  ecs_set(world, player, Mass, {200});
+  ecs_set(world, player, Rigidbody, RIGIDBODY(1200));
   ecs_set(world, player, MaxSpeed, {200});
   ecs_add_id(world, player, Player);
 
   ecs_entity_t enemySpawner = ecs_entity(world, {.name = "EnemySpawner"});
-  ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 100});
+  ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 1000});
 
   // game loop
   while (!IsWindowReady());
@@ -97,7 +96,7 @@ int main() {
     HandleDebuggingKeys();
     if (IsKeyPressed(KEY_F1)) {
       // RemoveAllEnemies();
-      Position *p = ecs_get(world, player, Position);
+      Position *p = ecs_get_mut(world, player, Position);
       *p = Vector2Zero();
     }
 #endif

@@ -14,7 +14,6 @@ typedef struct RectShape {
   Vector2 offset;
   Color color;
   Vector2 size;
-  float rotation;
 } RectShape;
 
 extern ECS_COMPONENT_DECLARE(CircleShape);

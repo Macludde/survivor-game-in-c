@@ -1,6 +1,7 @@
 #include "./collisions.h"
 
 #include "./movement.h"
+#include "./physics.h"
 #include "flecs.h"
 #include "physics_math.h"
 #include "raylib.h"
@@ -10,6 +11,8 @@ ECS_COMPONENT_DECLARE(Collidable);
 ECS_COMPONENT_DECLARE(CollidesWith);
 
 ECS_SYSTEM_DECLARE(Collide);
+
+// TODO: use a spatial grid or BVH to improve performance of collision detection
 
 void Collide(ecs_iter_t *it) {
   ecs_query_t *q_collide = it->ctx;  // Get query from system context
@@ -32,11 +35,8 @@ void Collide(ecs_iter_t *it) {
                      // entities reversed.
 
         if (CheckCollisionCircles(p1[i], c1[i].radius, p2[j], c2[j].radius)) {
-          Vector2 collPoint =
-              CollisionPoint(p1[i], c1[i].radius, p2[j], c2[j].radius);
-          float overlap = c1[i].radius + c2[j].radius -
-                          Vector2Length(Vector2Subtract(p1[i], p2[j]));
-          ecs_set_pair(it->world, e1, CollidesWith, e2, {collPoint, overlap});
+          Vector2 normal = SafeNormalize(Vector2Subtract(p1[i], p2[j]));
+          ecs_set_pair(it->world, e1, CollidesWith, e2, {normal});
         }
       }
     }
@@ -65,7 +65,7 @@ void CollisionsImport(ecs_world_t *world) {
                                    .name = "Collide",
                                    .add = ecs_ids(ecs_dependson(EcsOnValidate)),
                                }),
-          .query.expr = "Collidable, movement.Position",
+          .query.expr = "[in] Collidable, [in] movement.Position",
           .callback = Collide,
           .ctx = q_position,
       });

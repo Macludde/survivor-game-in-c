@@ -10,3 +10,9 @@ inline static float SlightVariation() {
 
 Vector2 CalculateMidpoint(Vector2 origin, Vector2 target);
 Vector2 PointAlongArc(Vector2 origin, Vector2 target, float progress);
+
+// vector should be normalized
+float LerpRotationAngle(float angle, Vector2 to, float amount);
+
+// vector should be normalized
+Vector2 LerpRotation(Vector2 from, Vector2 to, float amount);

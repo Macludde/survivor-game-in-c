@@ -1,4 +1,4 @@
-#include "./enemy.h"
+#include "./enemies.h"
 
 #include <stdbool.h>
 
@@ -31,14 +31,15 @@ static ecs_query_t *playerQuery;
 
 ecs_entity_t CreateEnemyPrefab(ecs_world_t *world) {
   ecs_entity_t enemy =
-      ecs_entity(world, {.name = "Enemy", .add = ecs_ids(EcsPrefab)});
+      ecs_entity(world, {.name = "Enemy", .add = ecs_ids(EcsPrefab, Enemy)});
   ecs_add(world, enemy, Position);
   ecs_set(world, enemy, Velocity, {0, 0});
   ecs_set(world, enemy, Acceleration, {0, 0});
   ecs_set(world, enemy, Rotation, {0});
+  ecs_set(world, enemy, MaxSpeed, {400});
   ecs_add(world, enemy, RectShape);
+  ecs_add(world, enemy, Rigidbody);
   ecs_add(world, enemy, Collidable);
-  ecs_add(world, enemy, Mass);
 
   return enemy;
 }
@@ -61,8 +62,8 @@ ecs_entity_t CreateEnemy(ecs_world_t *world) {
               .size = {size, size / 2},
               .color = SlightColorVariation(ENEMY_COLOR),
           });
-  ecs_set(world, enemy, Collidable, {.radius = size});
-  ecs_set(world, enemy, Mass, {size * size});
+  ecs_set(world, enemy, Collidable, {.radius = size / 2});
+  ecs_set(world, enemy, Rigidbody, RIGIDBODY(size * size / 2));
 
   return enemy;
 }
@@ -82,30 +83,31 @@ void SpawnEnemy(ecs_iter_t *it) {
 void EnemyTargetPlayer(ecs_iter_t *it) {
   Position *position = ecs_field(it, Position, 1);
   Rotation *rotation = ecs_field(it, Rotation, 2);
-  ecs_iter_t playerIt = ecs_query_iter(it->world, playerQuery);
-  Position closestPlayer = {INFINITY, INFINITY};
-  int closestPlayerDistanceSqr = INFINITY;
-  for (int i = 0; i < it->count; i++) {
-    while (ecs_query_next(&playerIt)) {
-      Position *playerPosition = ecs_field(&playerIt, Position, 0);
-      if (playerIt.count == 1 && closestPlayerDistanceSqr == INFINITY) {
-        closestPlayer = playerPosition[0];
-        closestPlayerDistanceSqr =
-            Vector2DistanceSqr(position[i], closestPlayer);
-      }
-      for (int j = 0; j < playerIt.count; j++) {
-        int distance = Vector2DistanceSqr(position[i], playerPosition[j]);
-        if (distance < closestPlayerDistanceSqr) {
-          closestPlayer = playerPosition[j];
-          closestPlayerDistanceSqr = distance;
+  Position closestPlayer[it->count];
+  int closestPlayerDistanceSqr[it->count];
+  ecs_iter_t targetIt = ecs_query_iter(it->world, playerQuery);
+  for (int i = 0; i < it->count; i++) closestPlayerDistanceSqr[i] = INT32_MAX;
+  while (ecs_query_next(&targetIt)) {
+    if (targetIt.count == 0) {
+      continue;
+    }
+    Position *targetPosition = ecs_field(&targetIt, Position, 0);
+    for (int i = 0; i < it->count; i++) {
+      for (int j = 0; j < targetIt.count; j++) {
+        int distance = Vector2DistanceSqr(position[i], targetPosition[j]);
+        if (distance < closestPlayerDistanceSqr[i]) {
+          closestPlayer[i] = targetPosition[j];
+          closestPlayerDistanceSqr[i] = distance;
         }
       }
     }
-    if (closestPlayerDistanceSqr == INFINITY) continue;
-    Vector2 direction = Vector2Subtract(closestPlayer, position[i]);
-    float angle = atan2f(direction.y, direction.x);
-    rotation[i] = Lerp(rotation[i], angle, ENEMY_ROTATION_SPEED);
-    closestPlayerDistanceSqr = INFINITY;
+  }
+  for (int i = 0; i < it->count; i++) {
+    if (closestPlayerDistanceSqr[i] == INT32_MAX) continue;
+    Vector2 direction =
+        Vector2Normalize(Vector2Subtract(closestPlayer[i], position[i]));
+    rotation[i] = LerpRotationAngle(rotation[i], direction,
+                                    ENEMY_ROTATION_SPEED * it->delta_time);
   }
 }
 
@@ -118,8 +120,8 @@ void EnemyAccelerate(ecs_iter_t *it) {
   }
 }
 
-void EnemyImport(ecs_world_t *world) {
-  ECS_MODULE(world, Enemy);
+void EnemiesImport(ecs_world_t *world) {
+  ECS_MODULE(world, Enemies);
 
   ECS_IMPORT(world, Movement);
   ECS_IMPORT(world, Base);
@@ -129,8 +131,8 @@ void EnemyImport(ecs_world_t *world) {
   playerQuery = ecs_query(world, {.expr = "movement.Position, base.Player"});
 
   ECS_SYSTEM_DEFINE(world, SpawnEnemy, EcsOnLoad, EnemySpawner);
-  ECS_SYSTEM_DEFINE(world, EnemyTargetPlayer, EcsPreUpdate, Enemy,
-                    movement.Rotation);
+  ECS_SYSTEM_DEFINE(world, EnemyTargetPlayer, EcsPreUpdate,
+                    Enemy, [in] movement.Position, movement.Rotation);
   ECS_SYSTEM_DEFINE(world, EnemyAccelerate, EcsOnUpdate, Enemy,
                     movement.Rotation, movement.Acceleration);
 

@@ -1,5 +1,7 @@
 #include "./movement.h"
 
+#include <math.h>
+
 #include "flecs.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -26,6 +28,9 @@ static void MovementMove(ecs_iter_t *it) {
       v[i] = Vector2Zero();  // stop completely if small enough
     else
       p[i] = Vector2Add(p[i], Vector2Scale(v[i], it->delta_time));
+    if (!(p[i].x < 1000 || p[i].x > 1000) || p[i].y == NAN) {
+      int a = 0;
+    }
   }
 }
 
@@ -36,11 +41,17 @@ static void MovementAccelerate(ecs_iter_t *it) {
   Acceleration *a = ecs_field(it, Acceleration, 1);
 
   for (int i = 0; i < it->count; ++i) {
+    if (Vector2LengthSqr(a[i]) < EPSILON) {
+      continue;
+    }
     if (Vector2DotProduct(v[i], a[i]) < 0) {
       // if acceleration is in opposite direction, move velocity faster
       v[i] = Vector2Add(v[i], Vector2Scale(a[i], it->delta_time * 3));
     } else {
       v[i] = Vector2Add(v[i], Vector2Scale(a[i], it->delta_time));
+    }
+    if (!(v[i].x < 1000 || v[i].x > 1000) || v[i].y == NAN) {
+      int _a = 0;
     }
     a[i] = Vector2Zero();  // reset for next frame
   }
@@ -49,11 +60,11 @@ static void MovementAccelerate(ecs_iter_t *it) {
 static void CapVelocity(ecs_iter_t *it) {
   // Get fields from system query
   Velocity *v = ecs_field(it, Velocity, 0);
-  MaxSpeed *a = ecs_field(it, MaxSpeed, 1);
+  MaxSpeed *max = ecs_field(it, MaxSpeed, 1);
 
   for (int i = 0; i < it->count; ++i) {
-    if (Vector2LengthSqr(v[i]) > a[i] * a[i]) {
-      v[i] = Vector2Scale(Vector2Normalize(v[i]), a[i]);
+    if (Vector2LengthSqr(v[i]) > max[i] * max[i]) {
+      v[i] = Vector2Scale(Vector2Normalize(v[i]), max[i]);
     }
   }
 }

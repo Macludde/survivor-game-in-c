@@ -30,7 +30,8 @@ ecs_entity_t TreePrefab(ecs_world_t *world) {
                });
 
   ecs_set(world, tree, Collidable, {.radius = TREE_TRUNK_HEIGHT / 2});
-  ecs_set(world, tree, Mass, {10000});
+  ecs_set(world, tree, Rigidbody,
+          RIGIDBODY(INT16_MAX));  // somewhat large number
 
   return tree;
 }

@@ -10,8 +10,7 @@ typedef struct Collidable {
 } Collidable;
 
 typedef struct CollidesWith {
-  Vector2 collisionPoint;
-  float overlap;
+  Vector2 normal;
 } CollidesWith;
 
 extern ECS_COMPONENT_DECLARE(Collidable);

@@ -65,3 +65,21 @@ Vector2 PointAlongArc(Vector2 origin, Vector2 target, float progress) {
 
   return point;
 }
+
+// angle in radians, vector should be normalized
+float LerpRotationAngle(float angle, Vector2 to, float amount) {
+  Vector3 unit = (Vector3){1, 0, 0};
+  Quaternion currentRotation = QuaternionFromEuler(0, 0, angle);
+  Quaternion targetRotation =
+      QuaternionFromVector3ToVector3(unit, (Vector3){to.x, to.y, 0});
+  currentRotation =
+      QuaternionSlerp(currentRotation, targetRotation, amount > 1 ? 1 : amount);
+  return QuaternionToEuler(currentRotation).z;
+}
+
+Vector2 LerpRotation(Vector2 from, Vector2 to, float amount) {
+  float angle = Vector2Angle((Vector2){1, 0}, from);
+  angle = LerpRotationAngle(angle, to, amount);
+
+  return Vector2Rotate((Vector2){1, 0}, angle);
+}
