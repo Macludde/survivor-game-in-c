@@ -23,7 +23,7 @@ ECS_SYSTEM_DECLARE(DamageOnCollision);
 ecs_entity_t SimpleGun(ecs_world_t *world) {
   ecs_entity_t weapon = ecs_new(world);
   ecs_set(world, weapon, ProjectileShooter,
-          {.damage = 10, .attackRate = 1, .bulletSpeed = 800, .range = 800});
+          {.damage = 10, .attackRate = 5, .bulletSpeed = 800, .range = 800});
   ecs_add(world, weapon, TargetsClosestEnemy);
   return weapon;
 }
@@ -75,13 +75,14 @@ static void FireProjectile(ecs_world_t *world, ProjectileShooter *shooter,
   ecs_set(world, bullet, Collidable, {.radius = 5});
   ecs_set(world, bullet, Damage, {shooter->damage});
   ecs_set(world, bullet, Friction, {0});
+  ecs_set(world, bullet, Despawn, DESPAWN_IN(2));
   ecs_add_id(world, bullet, Projectile);
 
   shooter->lastShot = time_in_seconds();
 }
 
 static bool CanFire(ProjectileShooter *shooter) {
-  return time_in_seconds() - shooter->lastShot >= 1 / shooter->attackRate;
+  return time_in_seconds() - shooter->lastShot >= 1.0f / shooter->attackRate;
 }
 
 void FireProjectiles(ecs_iter_t *it) {

@@ -8,7 +8,7 @@ typedef struct ProjectileShooter {
   float bulletSpeed;
   float range;
 
-  long lastShot;
+  double lastShot;
 } ProjectileShooter;
 
 typedef float Damage;
