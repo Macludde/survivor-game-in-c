@@ -9,11 +9,13 @@
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Velocity);
 ECS_COMPONENT_DECLARE(Acceleration);
+ECS_COMPONENT_DECLARE(ArcMotion);
 ECS_COMPONENT_DECLARE(MaxSpeed);
 ECS_COMPONENT_DECLARE(Friction);
 ECS_COMPONENT_DECLARE(Rotation);
 
 ECS_SYSTEM_DECLARE(MovementMove);
+ECS_SYSTEM_DECLARE(ArcMove);
 ECS_SYSTEM_DECLARE(MovementAccelerate);
 ECS_SYSTEM_DECLARE(CapVelocity);
 ECS_SYSTEM_DECLARE(MovementFriction);
@@ -34,7 +36,20 @@ static void MovementMove(ecs_iter_t *it) {
   }
 }
 
-#define EPSILON 1E-2
+static void ArcMove(ecs_iter_t *it) {
+  Position *p = ecs_field(it, Position, 0);
+  ArcMotion *a = ecs_field(it, ArcMotion, 1);
+
+  for (int i = 0; i < it->count; ++i) {
+    a[i].progress += it->delta_time;
+    if (a[i].progress >= 1) {
+      a[i].progress = 1;
+      a[i].onComplete(it->world, it->entities[i]);
+    }
+    p[i] = Vector2Lerp(a[i].from, a[i].to, a[i].progress);
+  }
+}
+
 static void MovementAccelerate(ecs_iter_t *it) {
   // Get fields from system query
   Velocity *v = ecs_field(it, Velocity, 0);
@@ -89,6 +104,7 @@ void MovementImport(ecs_world_t *world) {
   ECS_COMPONENT_DEFINE(world, Position);
   ECS_COMPONENT_DEFINE(world, Velocity);
   ECS_COMPONENT_DEFINE(world, Acceleration);
+  ECS_COMPONENT_DEFINE(world, ArcMotion);
   ECS_COMPONENT_DEFINE(world, MaxSpeed);
   ECS_COMPONENT_DEFINE(world, Friction);
   ECS_COMPONENT_DEFINE(world, Rotation);
@@ -101,4 +117,5 @@ void MovementImport(ecs_world_t *world) {
   ECS_SYSTEM_DEFINE(world, CapVelocity, EcsOnUpdate, Velocity, [in] MaxSpeed);
   ECS_SYSTEM_DEFINE(world, MovementMove, EcsOnUpdate, Position, Velocity);
   ECS_SYSTEM_DEFINE(world, MovementFriction,EcsPostUpdate, Velocity, [in] ?Friction);
+  ECS_SYSTEM_DEFINE(world, ArcMove, EcsOnUpdate, Position, ArcMotion);
 }

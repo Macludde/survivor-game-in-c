@@ -90,8 +90,8 @@ int main() {
   ecs_set(world, player, MaxSpeed, {200});
   ecs_set(world, player, Killable, KILLABLE(100));
   ecs_add_id(world, player, Player);
-  ecs_entity_t simpleGun = SimpleGun(world);
-  ecs_add_pair(world, player, Holds, simpleGun);
+  ecs_add_pair(world, player, Holds, SimpleGun(world));
+  ecs_add_pair(world, player, Holds, FlameGrenade(world));
 
   ecs_entity_t enemySpawner = ecs_entity(world, {.name = "EnemySpawner"});
   ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 1000});

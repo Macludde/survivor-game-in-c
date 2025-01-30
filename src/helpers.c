@@ -6,22 +6,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#ifdef _WIN32
-
-double time_in_seconds() {
-  return (double)clock() / CLOCKS_PER_SEC;  // Convert clock ticks to seconds
-}
-
-#else
-#include <sys/time.h>
-
-double time_in_seconds() {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec +
-         tv.tv_usec / 1e6;  // Convert seconds and microseconds to seconds
-}
-#endif
+double time_in_seconds() { return GetTime(); }
 
 Color SlightColorVariation(Color base) {
   return ColorLerp(base,

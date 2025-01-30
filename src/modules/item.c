@@ -20,14 +20,6 @@ ECS_DECLARE(Holds);  // Holds(Player, Weapon)
 ECS_SYSTEM_DECLARE(FireProjectiles);
 ECS_SYSTEM_DECLARE(DamageOnCollision);
 
-ecs_entity_t SimpleGun(ecs_world_t *world) {
-  ecs_entity_t weapon = ecs_new(world);
-  ecs_set(world, weapon, ProjectileShooter,
-          {.damage = 10, .attackRate = 5, .bulletSpeed = 800, .range = 800});
-  ecs_add(world, weapon, TargetsClosestEnemy);
-  return weapon;
-}
-
 static Position *ClosestEnemy(Position playerPos, ecs_world_t *world,
                               int maxRange) {
   static ecs_query_t *enemyPositionsQuery = NULL;
@@ -59,25 +51,98 @@ static Position *ClosestEnemy(Position playerPos, ecs_world_t *world,
   return closestEnemy;
 }
 
-static void FireProjectile(ecs_world_t *world, ProjectileShooter *shooter,
-                           Position *p) {
+void FireSimpleGun(ecs_world_t *world, ProjectileShooter *shooter,
+                   Position *p) {
   Position *closestEnemy = ClosestEnemy(*p, world, shooter->range);
   if (closestEnemy == NULL) {
     return;
   }
   Vector2 direction = SafeNormalize(Vector2Subtract(*closestEnemy, *p));
   Vector2 bulletVelocity = Vector2Scale(direction, shooter->bulletSpeed);
-  ecs_entity_t bullet = ecs_new(world);
+  ecs_entity_t bullet =
+      ecs_new_w_pair(world, EcsIsA, shooter->projectilePrefab);
   ecs_set(world, bullet, Position, {p->x, p->y});
   ecs_set(world, bullet, Velocity, {bulletVelocity.x, bulletVelocity.y});
-  ecs_set(world, bullet, CircleShape,
-          {.offset = {0, 0}, .radius = 5, .color = YELLOW});
-  ecs_set(world, bullet, Collidable, {.radius = 5});
-  ecs_set(world, bullet, Damage, {shooter->damage});
-  ecs_set(world, bullet, Friction, {0});
   ecs_set(world, bullet, Despawn, DESPAWN_IN(2));
-  ecs_add_id(world, bullet, Projectile);
+}
+ecs_entity_t SimpleGun(ecs_world_t *world) {
+  ecs_entity_t weapon = ecs_new(world);
+  ecs_add(world, weapon, TargetsClosestEnemy);
 
+  ecs_entity_t bulletPrefab = ecs_new(world);
+  ecs_add(world, bulletPrefab, Projectile);
+  ecs_set(world, bulletPrefab, CircleShape,
+          {.offset = {0, 0}, .radius = 5, .color = YELLOW});
+  ecs_set(world, bulletPrefab, Collidable, {.radius = 5});
+  ecs_set(world, bulletPrefab, Damage, {10});
+  ecs_set(world, bulletPrefab, Friction, {0});
+  ecs_add(world, bulletPrefab, Position);
+  ecs_add(world, bulletPrefab, Velocity);
+
+  ecs_set(world, weapon, ProjectileShooter,
+          {
+              .attackRate = 5,
+              .bulletSpeed = 800,
+              .range = 800,
+              .projectilePrefab = bulletPrefab,
+              .fire = FireSimpleGun,
+          });
+  ecs_add_pair(world, bulletPrefab, EcsChildOf, weapon);
+  return weapon;
+}
+
+void SplashFlameGrenade(ecs_world_t *world, ecs_entity_t e) {
+  ecs_entity_t parent = ecs_get_parent(world, e);
+  const ArcMotion *arc = ecs_get(world, e, ArcMotion);
+  const Damage *d = ecs_get(world, e, Damage);
+  ecs_entity_t splash = ecs_new(world);
+  // ecs_add_pair(world, splash, EcsChildOf, parent);
+  ecs_delete(world, e);
+  ecs_set(world, splash, Position, {arc->to.x, arc->to.y});
+  ecs_set(world, splash, CircleShape,
+          {.offset = {0, 0}, .radius = 50, .color = ORANGE});
+  ecs_set(world, splash, Collidable, {.radius = 50});
+  ecs_set(world, splash, Despawn, DESPAWN_IN(5));
+  ecs_set(world, splash, Damage, {*d});
+}
+void FireFlameGrenade(ecs_world_t *world, ProjectileShooter *shooter,
+                      Position *p) {
+  Position *closestEnemy = ClosestEnemy(*p, world, shooter->range);
+  if (closestEnemy == NULL) {
+    return;
+  }
+  ecs_entity_t bullet =
+      ecs_new_w_pair(world, EcsIsA, shooter->projectilePrefab);
+  ecs_set(world, bullet, Position, {p->x, p->y});
+  ecs_set(world, bullet, ArcMotion,
+          {.from = *p, .to = *closestEnemy, .onComplete = SplashFlameGrenade});
+}
+
+ecs_entity_t FlameGrenade(ecs_world_t *world) {
+  ecs_entity_t weapon = ecs_new(world);
+
+  ecs_entity_t bulletPrefab = ecs_new(world);
+  ecs_add(world, bulletPrefab, Projectile);
+  ecs_set(world, bulletPrefab, CircleShape,
+          {.offset = {0, 0}, .radius = 5, .color = ORANGE});
+  ecs_set(world, bulletPrefab, Damage, {10});
+  ecs_add(world, bulletPrefab, Position);
+
+  ecs_set(world, weapon, ProjectileShooter,
+          {
+              .attackRate = 0.2f,
+              .range = 800,
+              .projectilePrefab = bulletPrefab,
+              .fire = FireFlameGrenade,
+          });
+  ecs_add(world, weapon, TargetsClosestEnemy);
+  ecs_add_pair(world, bulletPrefab, EcsChildOf, weapon);
+  return weapon;
+}
+
+static void FireProjectile(ecs_world_t *world, ProjectileShooter *shooter,
+                           Position *p) {
+  shooter->fire(world, shooter, p);
   shooter->lastShot = time_in_seconds();
 }
 
@@ -101,8 +166,12 @@ void DamageOnCollision(ecs_iter_t *it) {
   Killable *killable = ecs_field(it, Killable, 2);
   for (int i = 0; i < it->count; ++i) {
     ecs_entity_t bullet = it->entities[i];
-    killable[i].health -= damage[i];
-    ecs_delete(it->world, bullet);
+    if (ecs_has_id(it->world, bullet, Projectile)) {
+      killable[i].health -= damage[i];
+      ecs_delete(it->world, bullet);
+    } else {
+      killable[i].health -= damage[i] * it->delta_time;
+    }
   }
 }
 
@@ -126,6 +195,5 @@ void ItemImport(ecs_world_t *world) {
                     Holds($this, $other), ProjectileShooter($other), movement.Position($this), ?TargetsClosestEnemy);
   ECS_SYSTEM_DEFINE(world, DamageOnCollision, EcsOnUpdate, Damage($this),
                     collisions.CollidesWith($this, $other),
-                    health.Killable($other), !player.Player($other),
-                    Projectile($this));
+                    health.Killable($other), !player.Player($other));
 }
