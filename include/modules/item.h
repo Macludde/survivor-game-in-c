@@ -1,7 +1,7 @@
 #pragma once
 
 #include "flecs.h"
-#include "items/items.h"
+#include "items.h"
 #include "modules/movement.h"
 
 typedef struct ProjectileShooter {
@@ -25,7 +25,5 @@ extern ECS_DECLARE(Projectile);
 extern ECS_DECLARE(TargetsClosestEnemy);
 extern ECS_COMPONENT_DECLARE(ProjectileShooter);
 extern ECS_COMPONENT_DECLARE(Damage);
-
-extern ECS_DECLARE(Holds);  // Holds(Player, Weapon)
 
 void ItemImport(ecs_world_t *world);

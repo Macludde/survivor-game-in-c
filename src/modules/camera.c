@@ -26,20 +26,35 @@ static void End2D(ecs_iter_t *it) { EndMode2D(); }
 
 static void MoveCameraToPosition(ecs_iter_t *it) {
   Position *p = ecs_field(it, Position, 1);
+  Position centerPosition;
+  if (it->count == 1) {
+    centerPosition = p[0];
+  } else if (it->count == 0) {
+    centerPosition = Vector2Zero();
+  } else {
+    centerPosition = Vector2Zero();
+    for (int i = 0; i < it->count; ++i) {
+      centerPosition = Vector2Add(centerPosition, p[i]);
+    }
+    centerPosition = Vector2Scale(centerPosition, 1.0f / it->count);
+  }
+
   float maxDistanceHorizontal = screenWidth * 0.4f;
   float maxDistanceVertical = screenHeight * 0.4f;
-  if ((int)p[0].x - (int)camera.target.x > maxDistanceHorizontal) {
-    camera.target.x = p[0].x - maxDistanceHorizontal;
-  } else if ((int)p[0].x - (int)camera.target.x < -maxDistanceHorizontal) {
-    camera.target.x = p[0].x + maxDistanceHorizontal;
+  if ((int)centerPosition.x - (int)camera.target.x > maxDistanceHorizontal) {
+    camera.target.x = centerPosition.x - maxDistanceHorizontal;
+  } else if ((int)centerPosition.x - (int)camera.target.x <
+             -maxDistanceHorizontal) {
+    camera.target.x = centerPosition.x + maxDistanceHorizontal;
   }
-  if ((int)p[0].y - (int)camera.target.y > maxDistanceVertical) {
-    camera.target.y = p[0].y - maxDistanceVertical;
-  } else if ((int)p[0].y - (int)camera.target.y < -maxDistanceVertical) {
-    camera.target.y = p[0].y + maxDistanceVertical;
+  if ((int)centerPosition.y - (int)camera.target.y > maxDistanceVertical) {
+    camera.target.y = centerPosition.y - maxDistanceVertical;
+  } else if ((int)centerPosition.y - (int)camera.target.y <
+             -maxDistanceVertical) {
+    camera.target.y = centerPosition.y + maxDistanceVertical;
   }
-  camera.target =
-      Vector2Lerp(camera.target, p[0], CAMERA_MOVEMENT_SPEED * it->delta_time);
+  camera.target = Vector2Lerp(camera.target, centerPosition,
+                              CAMERA_MOVEMENT_SPEED * it->delta_time);
 }
 
 static void MouseScrollZoom(ecs_iter_t *it) {

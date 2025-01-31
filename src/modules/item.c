@@ -15,8 +15,6 @@ ECS_DECLARE(TargetsClosestEnemy);
 ECS_COMPONENT_DECLARE(ProjectileShooter);
 ECS_COMPONENT_DECLARE(Damage);
 
-ECS_DECLARE(Holds);  // Holds(Player, Weapon)
-
 ECS_SYSTEM_DECLARE(FireProjectiles);
 ECS_SYSTEM_DECLARE(DamageOnCollision);
 
@@ -31,13 +29,14 @@ static bool CanFire(ProjectileShooter *shooter) {
 }
 
 void FireProjectiles(ecs_iter_t *it) {
-  //   ecs_id_t pair_id = ecs_field_id(it, 1);
-  //   ecs_entity_t shooter = ecs_pair_second(it->world, pair_id);
-  ProjectileShooter *shooter = ecs_field(it, ProjectileShooter, 2);
-  Position *p = ecs_field(it, Position, 3);
-  long now = time_in_seconds();
+  ecs_entity_t src1 = ecs_field_src(it, 0);
+  ecs_entity_t src2 = ecs_field_src(it, 1);
+  ProjectileShooter *shooter = ecs_field(it, ProjectileShooter, 0);
+  Position *p = ecs_field(it, Position, 1);
+  // Because p is seen as a fixed source (due to traversal), this function is
+  // called once per position (can still be multiple shooters)
   for (int i = 0; i < it->count; ++i) {
-    if (CanFire(&shooter[i])) FireProjectile(it->world, &shooter[i], &p[i]);
+    if (CanFire(&shooter[i])) FireProjectile(it->world, &shooter[i], p);
   }
 }
 
@@ -67,12 +66,14 @@ void ItemImport(ecs_world_t *world) {
   ECS_TAG_DEFINE(world, Weapon);
   ECS_TAG_DEFINE(world, Projectile);
   ECS_TAG_DEFINE(world, TargetsClosestEnemy);
-  ECS_TAG_DEFINE(world, Holds);
 
   ecs_add_pair(world, ecs_id(ProjectileShooter), EcsIsA, Weapon);
 
-  ECS_SYSTEM_DEFINE(world, FireProjectiles, EcsOnUpdate, player.Player($this),
-                    Holds($this, $other), ProjectileShooter($other), movement.Position($this), ?TargetsClosestEnemy);
+  // todo: items are still weird with the new traversal queries. Simple gun
+  // shoots from {0,0}
+  ECS_SYSTEM_DEFINE(world, FireProjectiles, EcsOnUpdate, ProjectileShooter,
+                    movement.Position(self | up));
+
   ECS_SYSTEM_DEFINE(world, DamageOnCollision, EcsOnUpdate, Damage($this),
                     collisions.CollidesWith($this, $other),
                     health.Killable($other), !player.Player($other));

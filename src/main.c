@@ -41,14 +41,6 @@ void SetupWindow() {
   InitWindow(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, GAME_NAME);
 }
 
-static void MovePlayer(ecs_iter_t *it) {
-  const InputStates *i = ecs_singleton_get(it->world, InputStates);
-  Acceleration *a = ecs_field(it, Acceleration, 0);
-
-  a->x += i->WASD.x * 400;
-  a->y += i->WASD.y * 400;
-}
-
 int main() {
   double beforeSetup = time_in_seconds();
   SetupWindow();
@@ -70,9 +62,6 @@ int main() {
   ECS_IMPORT(world, Controls);
   ECS_IMPORT(world, Render);
 
-  ECS_SYSTEM(world, MovePlayer, EcsOnLoad, movement.Acceleration,
-             player.Player);
-
   level = (Level){
       .width = 200 * 5,
       .height = 200 * 5,
@@ -90,8 +79,9 @@ int main() {
   ecs_set(world, player, MaxSpeed, {200});
   ecs_set(world, player, Killable, KILLABLE(100));
   ecs_add_id(world, player, Player);
-  ecs_add_pair(world, player, Holds, SimpleGun(world));
-  ecs_add_pair(world, player, Holds, FlameGrenade(world));
+  ecs_add_id(world, player, WASDMovable);
+  ecs_add_pair(world, SimpleGun(world), EcsChildOf, player);
+  ecs_add_pair(world, FlameGrenade(world), EcsChildOf, player);
 
   ecs_entity_t enemySpawner = ecs_entity(world, {.name = "EnemySpawner"});
   ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 1000});

@@ -17,6 +17,7 @@ void FireSimpleGun(ecs_world_t *world, ProjectileShooter *shooter,
   }
   Vector2 direction = SafeNormalize(Vector2Subtract(*closestEnemy, *p));
   Vector2 bulletVelocity = Vector2Scale(direction, shooter->bulletSpeed);
+
   ecs_entity_t bullet =
       ecs_new_w_pair(world, EcsIsA, shooter->projectilePrefab);
   ecs_set(world, bullet, Position, {p->x, p->y});
@@ -29,6 +30,7 @@ ecs_entity_t SimpleGun(ecs_world_t *world) {
   ecs_add(world, weapon, TargetsClosestEnemy);
 
   ecs_entity_t bulletPrefab = ecs_new(world);
+  ecs_add_id(world, bulletPrefab, EcsPrefab);
   ecs_add(world, bulletPrefab, Projectile);
   ecs_set(world, bulletPrefab, CircleShape,
           {.offset = {0, 0}, .radius = 5, .color = YELLOW});
@@ -37,6 +39,7 @@ ecs_entity_t SimpleGun(ecs_world_t *world) {
   ecs_set(world, bulletPrefab, Friction, {0});
   ecs_add(world, bulletPrefab, Position);
   ecs_add(world, bulletPrefab, Velocity);
+  ecs_add_pair(world, bulletPrefab, EcsChildOf, weapon);
 
   ecs_set(world, weapon, ProjectileShooter,
           {
@@ -46,6 +49,5 @@ ecs_entity_t SimpleGun(ecs_world_t *world) {
               .projectilePrefab = bulletPrefab,
               .fire = FireSimpleGun,
           });
-  ecs_add_pair(world, bulletPrefab, EcsChildOf, weapon);
   return weapon;
 }

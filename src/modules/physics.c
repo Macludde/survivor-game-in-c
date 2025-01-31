@@ -128,16 +128,16 @@ void PhysicsImport(ecs_world_t *world) {
   ecs_add_pair(world, ecs_id(Rigidbody), EcsWith, ecs_id(Velocity));
   ecs_add_pair(world, ecs_id(Rigidbody), EcsWith, ecs_id(Collidable));
 
+  ECS_SYSTEM_DEFINE(world, ResolveCollisions, EcsOnUpdate,
+                    Rigidbody($this), [in] movement.Velocity($this),
+                    [in] collisions.CollidesWith($this, $other),
+                    Rigidbody($other), [in] movement.Velocity($other));
   ECS_SYSTEM_DEFINE(
       world, SolvePenetrations, EcsOnValidate,
       movement.Position($this), [in] collisions.Collidable($this),
       [in] Rigidbody($this), [in] collisions.CollidesWith($this, $other),
       movement.Position($other), [in] collisions.Collidable($other),
       [in] Rigidbody($other));
-  ECS_SYSTEM_DEFINE(world, ResolveCollisions, EcsOnUpdate,
-                    Rigidbody($this), [in] movement.Velocity($this),
-                    [in] collisions.CollidesWith($this, $other),
-                    Rigidbody($other), [in] movement.Velocity($other));
   ECS_SYSTEM_DEFINE(world, ApplyAllImpulses, EcsOnValidate, Rigidbody,
                     movement.Velocity);
 

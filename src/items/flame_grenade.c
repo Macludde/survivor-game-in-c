@@ -39,13 +39,15 @@ void FireFlameGrenade(ecs_world_t *world, ProjectileShooter *shooter,
 
 ecs_entity_t FlameGrenade(ecs_world_t *world) {
   ecs_entity_t weapon = ecs_new(world);
+  ecs_add(world, weapon, TargetsClosestEnemy);
 
   ecs_entity_t bulletPrefab = ecs_new(world);
+  ecs_add_id(world, bulletPrefab, EcsPrefab);
   ecs_add(world, bulletPrefab, Projectile);
   ecs_set(world, bulletPrefab, CircleShape,
           {.offset = {0, 0}, .radius = 5, .color = ORANGE});
   ecs_set(world, bulletPrefab, Damage, {20});
-  ecs_add(world, bulletPrefab, Position);
+  // ecs_add(world, bulletPrefab, Position);
 
   ecs_set(world, weapon, ProjectileShooter,
           {
@@ -54,7 +56,6 @@ ecs_entity_t FlameGrenade(ecs_world_t *world) {
               .projectilePrefab = bulletPrefab,
               .fire = FireFlameGrenade,
           });
-  ecs_add(world, weapon, TargetsClosestEnemy);
   ecs_add_pair(world, bulletPrefab, EcsChildOf, weapon);
   return weapon;
 }
