@@ -1,11 +1,12 @@
 
+#include "modules/physics.h"
+
 #include <float.h>
 #include <math.h>
 
 #include "flecs.h"
 #include "modules/collisions.h"
 #include "modules/movement.h"
-#include "modules/rigidbody.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -14,7 +15,7 @@ ECS_COMPONENT_DECLARE(Bounciness);
 ECS_SYSTEM_DECLARE(SolvePenetrations);
 ECS_SYSTEM_DECLARE(ResolveCollisions);
 ECS_SYSTEM_DECLARE(ApplyAllImpulses);
-ECS_SYSTEM_DECLARE(ClearCollisions);
+
 static void SolvePenetration(Vector2 *posA, Vector2 *posB, float radiusA,
                              float radiusB, float invMassA, float invMassB) {
   Vector2 delta = Vector2Subtract(*posB, *posA);
@@ -29,9 +30,9 @@ static void SolvePenetration(Vector2 *posA, Vector2 *posB, float radiusA,
     *posA = Vector2Add(
         *posA,
         Vector2Scale(correctionDir, -correction * (invMassB / totalInvMass)));
-    *posB = Vector2Add(
-        *posB,
-        Vector2Scale(correctionDir, correction * (invMassA / totalInvMass)));
+    // *posB = Vector2Add(
+    //     *posB,
+    //     Vector2Scale(correctionDir, correction * (invMassA / totalInvMass)));
   }
 }
 
@@ -56,8 +57,8 @@ static void ResolveCollision(Rigidbody *bodyA, Rigidbody *bodyB, Velocity velA,
   Vector2 impulse = Vector2Scale(normal, j);
   bodyA->accumulatedImpulse = Vector2Add(
       bodyA->accumulatedImpulse, Vector2Scale(impulse, bodyA->inverseMass));
-  bodyB->accumulatedImpulse = Vector2Subtract(
-      bodyB->accumulatedImpulse, Vector2Scale(impulse, bodyB->inverseMass));
+  // bodyB->accumulatedImpulse = Vector2Subtract(
+  //     bodyB->accumulatedImpulse, Vector2Scale(impulse, bodyB->inverseMass));
 }
 
 // Apply impulses after all collisions are processed
@@ -104,28 +105,12 @@ void ApplyAllImpulses(ecs_iter_t *it) {
   }
 }
 
-static void ClearCollisions(ecs_iter_t *it) {
-  ecs_id_t pair_id = ecs_field_id(it, 0);
-  ecs_entity_t target = ecs_pair_second(it->world, pair_id);
-  ecs_entity_t e2 = it->variables[1].entity;
-  if (it->count > 1) {
-    int _a = 0;
-  }
-
-  for (int i = 0; i < it->count; i++) {
-    ecs_entity_t e1 = it->entities[i];
-    ecs_remove_pair(it->world, e1, ecs_id(CollidesWith), target);
-    ecs_remove_pair(it->world, e1, ecs_id(CollidesWith), e2);
-  }
-}
-
 // The import function name has to follow the convention: <ModuleName>Import
 void PhysicsImport(ecs_world_t *world) {
   ECS_MODULE(world, Physics);
   ECS_COMPONENT_DEFINE(world, Rigidbody);
   ECS_COMPONENT_DEFINE(world, Bounciness);
 
-  ecs_add_pair(world, ecs_id(Rigidbody), EcsWith, ecs_id(Velocity));
   ecs_add_pair(world, ecs_id(Rigidbody), EcsWith, ecs_id(Collidable));
 
   ECS_SYSTEM_DEFINE(world, ResolveCollisions, EcsOnUpdate,
@@ -140,7 +125,4 @@ void PhysicsImport(ecs_world_t *world) {
       [in] Rigidbody($other));
   ECS_SYSTEM_DEFINE(world, ApplyAllImpulses, EcsOnValidate, Rigidbody,
                     movement.Velocity);
-
-  ECS_SYSTEM_DEFINE(world, ClearCollisions, EcsOnStore,
-                    collisions.CollidesWith($this, $other));
 }

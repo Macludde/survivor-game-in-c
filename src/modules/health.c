@@ -68,7 +68,6 @@ void DamageOnCollision(ecs_iter_t *it) {
       damageToDeal = damage[i] * it->delta_time;
     }
     killable[i].health -= damageToDeal;
-    printf("Entity %d took %.2f damage\n", it->entities[i], damageToDeal);
   }
 }
 

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define DEBUG_SHOW_HITBOXES
 
 #include "debug.h"
 #include "helpers.h"
@@ -12,9 +13,9 @@
 #include "modules/health.h"
 #include "modules/item.h"
 #include "modules/movement.h"
+#include "modules/physics.h"
 #include "modules/player.h"
 #include "modules/render.h"
-#include "modules/rigidbody.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "resource_dir.h"  // utility header for SearchAndSetResourceDir
@@ -80,8 +81,9 @@ int main() {
   ecs_set(world, player, Killable, KILLABLE(100));
   ecs_add_id(world, player, Player);
   ecs_add_id(world, player, WASDMovable);
-  ecs_add_pair(world, SimpleGun(world), EcsChildOf, player);
+  // ecs_add_pair(world, SimpleGun(world), EcsChildOf, player);
   ecs_add_pair(world, FlameGrenade(world), EcsChildOf, player);
+  ecs_add_pair(world, OrbitOrb(world), EcsChildOf, player);
 
   ecs_entity_t enemySpawner = ecs_entity(world, {.name = "EnemySpawner"});
   ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 1000});
@@ -105,16 +107,6 @@ int main() {
     BeginDrawing();
     ClearBackground(WHITE);
     ecs_progress(world, GetFrameTime());
-    // draw world
-    // DrawLevelBackground();
-    // DrawEnemies();
-    // DrawPlayer(&player);
-    // DrawLevelForeground();
-    // ItemsCallDrawForeground(&player);
-
-    // #ifdef DEBUG_SHOW_HITBOXES
-    //     DrawHitboxes(level.allEntities, arrlen(level.allEntities));
-    // #endif
 
     // draw UI
 

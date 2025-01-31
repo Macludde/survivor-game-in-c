@@ -69,7 +69,7 @@ void RenderImport(ecs_world_t *world) {
   ECS_TAG_DEFINE(world, BackgroundRenderLayer);
   ECS_TAG_DEFINE(world, ForegroundRenderLayer);
 
-#ifdef DEBUG_SHOW_HITBOXES
+#ifdef DEBUG
   ECS_SYSTEM_DEFINE(world, RenderCollidables, EcsOnStore, movement.Position,
                     collisions.Collidable);
   ECS_SYSTEM_DEFINE(world, RenderCollisions, EcsOnStore, movement.Position,

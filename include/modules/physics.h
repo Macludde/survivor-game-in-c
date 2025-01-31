@@ -19,7 +19,6 @@ extern ECS_COMPONENT_DECLARE(Bounciness);
 extern ECS_SYSTEM_DECLARE(SolvePenetrations);
 extern ECS_SYSTEM_DECLARE(ResolveCollisions);
 extern ECS_SYSTEM_DECLARE(ApplyAllImpulses);
-extern ECS_SYSTEM_DECLARE(ClearCollisions);
 
 // The import function name has to follow the convention: <ModuleName>Import
 void PhysicsImport(ecs_world_t *world);

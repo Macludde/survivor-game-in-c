@@ -2,9 +2,11 @@
 
 #include "flecs.h"
 #include "modules/movement.h"
-#include "modules/rigidbody.h"
+#include "modules/physics.h"
 #include "raylib.h"
 #include "raymath.h"
+
+static ecs_query_t *q_collidables = NULL;
 
 ECS_COMPONENT_DECLARE(Collidable);
 ECS_COMPONENT_DECLARE(CollidesWith);
@@ -14,7 +16,6 @@ ECS_SYSTEM_DECLARE(Collide);
 // TODO: use a spatial grid or BVH to improve performance of collision detection
 
 void Collide(ecs_iter_t *it) {
-  ecs_query_t *q_collide = it->ctx;  // Get query from system context
   const Collidable *c1 = ecs_field(it, Collidable, 0);
   const Position *p1 = ecs_field(it, Position, 1);
 
@@ -22,7 +23,7 @@ void Collide(ecs_iter_t *it) {
     ecs_entity_t e1 = it->entities[i];
 
     // For each matching entity, iterate the query
-    ecs_iter_t qit = ecs_query_iter(it->world, q_collide);
+    ecs_iter_t qit = ecs_query_iter(it->world, q_collidables);
     while (ecs_query_next(&qit)) {
       const Collidable *c2 = ecs_field(&qit, Collidable, 0);
       const Position *p2 = ecs_field(&qit, Position, 1);
@@ -35,7 +36,10 @@ void Collide(ecs_iter_t *it) {
 
         if (CheckCollisionCircles(p1[i], c1[i].radius, p2[j], c2[j].radius)) {
           Vector2 normal = SafeNormalize(Vector2Subtract(p1[i], p2[j]));
+          // if (!ecs_has_pair(it->world, e1, ecs_id(CollidesWith), e2))
           ecs_set_pair(it->world, e1, CollidesWith, e2, {normal});
+        } else if (ecs_has_pair(it->world, e1, ecs_id(CollidesWith), e2)) {
+          ecs_remove_pair(it->world, e1, ecs_id(CollidesWith), e2);
         }
       }
     }
@@ -50,22 +54,14 @@ void CollisionsImport(ecs_world_t *world) {
   ECS_COMPONENT_DEFINE(world, Collidable);
   ECS_COMPONENT_DEFINE(world, CollidesWith);
 
-  // ecs_add_id(world, ecs_id(CollidesWith), EcsSymmetric);
+  ecs_add_id(world, ecs_id(CollidesWith), EcsSymmetric);
   ecs_add_id(world, ecs_id(CollidesWith), EcsRelationship);
 
-  ecs_query_t *q_position =
-      ecs_query(world, {.expr = "[in] Collidable, [in] movement.Position"});
-
-  ecs_id(Collide) = ecs_system(
+  q_collidables = ecs_query(
       world,
-      {
-          .entity = ecs_entity(world,
-                               {
-                                   .name = "Collide",
-                                   .add = ecs_ids(ecs_dependson(EcsPreUpdate)),
-                               }),
-          .query.expr = "[in] Collidable, [in] movement.Position",
-          .callback = Collide,
-          .ctx = q_position,
-      });
+      {.expr =
+           "[in] Collidable, [in] movement.Position, [out] CollidesWith()"});
+
+  ECS_SYSTEM_DEFINE(world, Collide, EcsOnUpdate, [in] Collidable,
+                    [in] movement.Position, [out] CollidesWith());
 }
