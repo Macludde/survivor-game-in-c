@@ -9,16 +9,24 @@
 ECS_COMPONENT_DECLARE(Position);
 ECS_COMPONENT_DECLARE(Velocity);
 ECS_COMPONENT_DECLARE(Acceleration);
-ECS_COMPONENT_DECLARE(ArcMotion);
+
 ECS_COMPONENT_DECLARE(MaxSpeed);
 ECS_COMPONENT_DECLARE(Friction);
 ECS_COMPONENT_DECLARE(Rotation);
 
+ECS_COMPONENT_DECLARE(ArcMotion);
+ECS_COMPONENT_DECLARE(CircularMotion);
+ECS_DECLARE(OrbitsParent);
+
 ECS_SYSTEM_DECLARE(MovementMove);
-ECS_SYSTEM_DECLARE(ArcMove);
 ECS_SYSTEM_DECLARE(MovementAccelerate);
-ECS_SYSTEM_DECLARE(CapVelocity);
 ECS_SYSTEM_DECLARE(MovementFriction);
+ECS_SYSTEM_DECLARE(CapVelocity);
+
+ECS_SYSTEM_DECLARE(ArcMove);
+ECS_SYSTEM_DECLARE(MoveCircleCenter);
+ECS_SYSTEM_DECLARE(FollowOrbitCenter);
+ECS_SYSTEM_DECLARE(RotateCircle);
 
 static void MovementMove(ecs_iter_t *it) {
   // Get fields from system query
@@ -98,16 +106,54 @@ static void MovementFriction(ecs_iter_t *it) {
   }
 }
 
+static void MoveCircleCenter(ecs_iter_t *it) {
+  Velocity *v = ecs_field(it, Velocity, 0);
+  CircularMotion *c = ecs_field(it, CircularMotion, 1);
+
+  for (int i = 0; i < it->count; ++i) {
+    c[i].center = Vector2Add(c[i].center, Vector2Scale(v[i], it->delta_time));
+  }
+}
+
+static void FollowOrbitCenter(ecs_iter_t *it) {
+  CircularMotion *c = ecs_field(it, CircularMotion, 0);
+  Position *p = ecs_field(it, Position, 2);
+
+  for (int i = 0; i < it->count; ++i) {
+    c[i].center = p[i];
+  }
+}
+
+static void RotateCircle(ecs_iter_t *it) {
+  Position *p = ecs_field(it, Position, 0);
+  CircularMotion *c = ecs_field(it, CircularMotion, 1);
+
+  for (int i = 0; i < it->count; ++i) {
+    c[i].angle += c[i].speed * it->delta_time;
+    if (c[i].angle > 2 * PI) {
+      c[i].angle -= 2 * PI;
+    } else if (c[i].angle < 0) {
+      c[i].angle += 2 * PI;
+    }
+    p[i] = Vector2Add(c[i].center, (Vector2){c[i].radius * cos(c[i].angle),
+                                             c[i].radius * sin(c[i].angle)});
+  }
+}
+
 void MovementImport(ecs_world_t *world) {
   ECS_MODULE(world, Movement);
 
   ECS_COMPONENT_DEFINE(world, Position);
   ECS_COMPONENT_DEFINE(world, Velocity);
   ECS_COMPONENT_DEFINE(world, Acceleration);
-  ECS_COMPONENT_DEFINE(world, ArcMotion);
+
   ECS_COMPONENT_DEFINE(world, MaxSpeed);
   ECS_COMPONENT_DEFINE(world, Friction);
   ECS_COMPONENT_DEFINE(world, Rotation);
+
+  ECS_COMPONENT_DEFINE(world, ArcMotion);
+  ECS_COMPONENT_DEFINE(world, CircularMotion);
+  ECS_TAG_DEFINE(world, OrbitsParent);
 
   ecs_add_pair(world, ecs_id(Velocity), EcsWith, ecs_id(Position));
   ecs_add_pair(world, ecs_id(Acceleration), EcsWith, ecs_id(Velocity));
@@ -117,5 +163,11 @@ void MovementImport(ecs_world_t *world) {
   ECS_SYSTEM_DEFINE(world, CapVelocity, EcsOnUpdate, Velocity, [in] MaxSpeed);
   ECS_SYSTEM_DEFINE(world, MovementMove, EcsOnUpdate, Position, Velocity);
   ECS_SYSTEM_DEFINE(world, MovementFriction,EcsPostUpdate, Velocity, [in] ?Friction);
+
   ECS_SYSTEM_DEFINE(world, ArcMove, EcsOnUpdate, Position, ArcMotion);
+  ECS_SYSTEM_DEFINE(world, MoveCircleCenter, EcsOnUpdate, [in] Velocity,
+                    CircularMotion);
+  ECS_SYSTEM_DEFINE(world, FollowOrbitCenter, EcsOnUpdate, CircularMotion,
+                    OrbitsParent, [in] Position(up));
+  ECS_SYSTEM_DEFINE(world, RotateCircle, EcsOnUpdate, Position, CircularMotion);
 }

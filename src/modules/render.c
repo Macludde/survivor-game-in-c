@@ -11,6 +11,7 @@ ECS_COMPONENT_DECLARE(CircleShape);
 ECS_COMPONENT_DECLARE(RectShape);
 
 ECS_SYSTEM_DECLARE(RenderCollidables);
+ECS_SYSTEM_DECLARE(RenderCollisions);
 DECLARE_RENDER_SYSTEM(RenderRect);
 DECLARE_RENDER_SYSTEM(RenderCircle);
 
@@ -22,6 +23,14 @@ static void RenderCollidables(ecs_iter_t *it) {
   Collidable *col = ecs_field(it, Collidable, 1);
   for (int i = 0; i < it->count; ++i) {
     DrawCircleLinesV(p[i], col[i].radius, PINK);
+  }
+}
+
+static void RenderCollisions(ecs_iter_t *it) {
+  Position *p = ecs_field(it, Position, 0);
+  Collidable *col = ecs_field(it, Collidable, 1);
+  for (int i = 0; i < it->count; ++i) {
+    DrawCircleV(p[i], col[i].radius, RED);
   }
 }
 
@@ -60,8 +69,12 @@ void RenderImport(ecs_world_t *world) {
   ECS_TAG_DEFINE(world, BackgroundRenderLayer);
   ECS_TAG_DEFINE(world, ForegroundRenderLayer);
 
+#ifdef DEBUG_SHOW_HITBOXES
   ECS_SYSTEM_DEFINE(world, RenderCollidables, EcsOnStore, movement.Position,
                     collisions.Collidable);
+  ECS_SYSTEM_DEFINE(world, RenderCollisions, EcsOnStore, movement.Position,
+                    collisions.Collidable, (collisions.CollidesWith, *));
+#endif
 
   // This is horrible code, I just don't know how to do it better
   // I've tried using the macros, but each system needs its own name

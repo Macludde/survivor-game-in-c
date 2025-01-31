@@ -1,13 +1,5 @@
-#include "flecs.h"
-#include "helpers.h"
-#include "modules/collisions.h"
+#include "items.h"
 #include "modules/enemies.h"
-#include "modules/health.h"
-#include "modules/item.h"
-#include "modules/movement.h"
-#include "modules/player.h"
-#include "modules/render.h"
-#include "modules/rigidbody.h"
 
 void SplashFlameGrenade(ecs_world_t *world, ecs_entity_t e) {
   ecs_entity_t parent = ecs_get_parent(world, e);

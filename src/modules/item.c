@@ -5,9 +5,9 @@
 #include "modules/collisions.h"
 #include "modules/health.h"
 #include "modules/movement.h"
+#include "modules/physics.h"
 #include "modules/player.h"
 #include "modules/render.h"
-#include "modules/rigidbody.h"
 
 ECS_DECLARE(Weapon);
 ECS_DECLARE(Projectile);
@@ -16,7 +16,6 @@ ECS_COMPONENT_DECLARE(ProjectileShooter);
 ECS_COMPONENT_DECLARE(Damage);
 
 ECS_SYSTEM_DECLARE(FireProjectiles);
-ECS_SYSTEM_DECLARE(DamageOnCollision);
 
 static void FireProjectile(ecs_world_t *world, ProjectileShooter *shooter,
                            Position *p) {
@@ -40,20 +39,6 @@ void FireProjectiles(ecs_iter_t *it) {
   }
 }
 
-void DamageOnCollision(ecs_iter_t *it) {
-  Damage *damage = ecs_field(it, Damage, 0);
-  Killable *killable = ecs_field(it, Killable, 2);
-  for (int i = 0; i < it->count; ++i) {
-    ecs_entity_t bullet = it->entities[i];
-    if (ecs_has_id(it->world, bullet, Projectile)) {
-      killable[i].health -= damage[i];
-      ecs_delete(it->world, bullet);
-    } else {
-      killable[i].health -= damage[i] * it->delta_time;
-    }
-  }
-}
-
 void ItemImport(ecs_world_t *world) {
   ECS_MODULE(world, Item);
   ECS_IMPORT(world, Player);
@@ -62,19 +47,12 @@ void ItemImport(ecs_world_t *world) {
   ECS_IMPORT(world, Health);
 
   ECS_COMPONENT_DEFINE(world, ProjectileShooter);
-  ECS_COMPONENT_DEFINE(world, Damage);
   ECS_TAG_DEFINE(world, Weapon);
   ECS_TAG_DEFINE(world, Projectile);
   ECS_TAG_DEFINE(world, TargetsClosestEnemy);
 
   ecs_add_pair(world, ecs_id(ProjectileShooter), EcsIsA, Weapon);
 
-  // todo: items are still weird with the new traversal queries. Simple gun
-  // shoots from {0,0}
   ECS_SYSTEM_DEFINE(world, FireProjectiles, EcsOnUpdate, ProjectileShooter,
                     movement.Position(self | up));
-
-  ECS_SYSTEM_DEFINE(world, DamageOnCollision, EcsOnUpdate, Damage($this),
-                    collisions.CollidesWith($this, $other),
-                    health.Killable($other), !player.Player($other));
 }
