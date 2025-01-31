@@ -2,7 +2,7 @@
 
 #include "flecs.h"
 #include "level.h"
-#include "physics_math.h"
+#include "modules/movement.h"
 #include "raylib.h"
 
 #define ENEMY_COLOR RED
@@ -24,3 +24,4 @@ extern ECS_SYSTEM_DECLARE(EnemyTargetPlayer);
 extern ECS_SYSTEM_DECLARE(EnemyAccelerate);
 
 void EnemiesImport(ecs_world_t *world);
+Position *ClosestEnemy(Position origin, ecs_world_t *world, int maxRange);

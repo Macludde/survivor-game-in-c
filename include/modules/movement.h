@@ -11,6 +11,7 @@ typedef struct ArcMotion {
   Vector2 from;
   Vector2 to;
   float progress;
+  // virtual functions are slow, but this is called infrequently
   void (*onComplete)(ecs_world_t *world, ecs_entity_t e);
 } ArcMotion;
 

@@ -3,7 +3,6 @@
 #include "flecs.h"
 #include "modules/movement.h"
 #include "modules/rigidbody.h"
-#include "physics_math.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -57,7 +56,7 @@ void CollisionsImport(ecs_world_t *world) {
   ecs_query_t *q_position =
       ecs_query(world, {.expr = "[in] Collidable, [in] movement.Position"});
 
-  ecs_entity_t ecs_id(Collide) = ecs_system(
+  ecs_id(Collide) = ecs_system(
       world,
       {
           .entity = ecs_entity(world,

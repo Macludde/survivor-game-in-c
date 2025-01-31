@@ -122,6 +122,36 @@ void EnemyAccelerate(ecs_iter_t *it) {
   }
 }
 
+Position *ClosestEnemy(Position origin, ecs_world_t *world, int maxRange) {
+  static ecs_query_t *enemyPositionsQuery = NULL;
+  if (enemyPositionsQuery == NULL) {
+    enemyPositionsQuery =
+        ecs_query(world, {.expr = "enemies.Enemy, movement.Position"});
+  }
+  Position *closestEnemy;
+  int closestEnemyDistanceSqr = maxRange * maxRange + 1;
+  // find closes enemy
+  ecs_iter_t targetIt = ecs_query_iter(world, enemyPositionsQuery);
+
+  while (ecs_query_next(&targetIt)) {
+    if (targetIt.count == 0) {
+      continue;
+    }
+    Position *targetPosition = ecs_field(&targetIt, Position, 1);
+    for (int i = 0; i < targetIt.count; i++) {
+      int distance = Vector2DistanceSqr(origin, targetPosition[i]);
+      if (distance <= closestEnemyDistanceSqr) {
+        closestEnemy = &targetPosition[i];
+        closestEnemyDistanceSqr = distance;
+      }
+    }
+  }
+  if (closestEnemyDistanceSqr == maxRange * maxRange + 1) {
+    return NULL;
+  }
+  return closestEnemy;
+}
+
 void EnemiesImport(ecs_world_t *world) {
   ECS_MODULE(world, Enemies);
 
