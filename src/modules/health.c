@@ -5,6 +5,7 @@
 #include "flecs.h"
 #include "helpers.h"
 #include "modules/collisions.h"
+#include "modules/enemies.h"
 #include "modules/item.h"
 #include "modules/movement.h"
 #include "modules/player.h"
@@ -16,7 +17,8 @@ ECS_COMPONENT_DECLARE(Despawn);
 ECS_SYSTEM_DECLARE(ShowHealth);
 ECS_SYSTEM_DECLARE(KillHealthless);
 ECS_SYSTEM_DECLARE(DespawnEntities);
-ECS_SYSTEM_DECLARE(DamageOnCollision);
+ECS_SYSTEM_DECLARE(DamageNonPlayerOnCollision);
+ECS_SYSTEM_DECLARE(DamagePlayerOnCollision);
 
 void ShowHealth(ecs_iter_t *it) {
   Killable *k = ecs_field(it, Killable, 0);
@@ -40,7 +42,12 @@ void KillHealthless(ecs_iter_t *it) {
   Killable *k = ecs_field(it, Killable, 0);
   for (int i = 0; i < it->count; i++) {
     if (k[i].health <= EPSILON) {
-      ecs_delete(it->world, it->entities[i]);
+      if (ecs_has(it->world, it->entities[i], Player)) {
+        // player died, todo
+        // exit(1);
+      } else {
+        ecs_delete(it->world, it->entities[i]);
+      }
     }
   }
 }
@@ -54,7 +61,7 @@ void DespawnEntities(ecs_iter_t *it) {
   }
 }
 
-void DamageOnCollision(ecs_iter_t *it) {
+static void _DamageOnCollision(ecs_iter_t *it) {
   Damage *damage = ecs_field(it, Damage, 0);
   Killable *killable = ecs_field(it, Killable, 2);
   for (int i = 0; i < it->count; ++i) {
@@ -70,11 +77,18 @@ void DamageOnCollision(ecs_iter_t *it) {
     killable[i].health -= damageToDeal;
   }
 }
+inline static void DamageNonPlayerOnCollision(ecs_iter_t *it) {
+  _DamageOnCollision(it);
+}
+inline static void DamagePlayerOnCollision(ecs_iter_t *it) {
+  _DamageOnCollision(it);
+}
 
 void HealthImport(ecs_world_t *world) {
   ECS_MODULE(world, Health);
   ECS_IMPORT(world, Collisions);
-  ECS_IMPORT(world, Player);
+  ECS_IMPORT(world, Enemies);
+  ECS_IMPORT(world, Players);
 
   ECS_COMPONENT_DEFINE(world, Killable);
   ECS_COMPONENT_DEFINE(world, Despawn);
@@ -84,7 +98,12 @@ void HealthImport(ecs_world_t *world) {
   ECS_SYSTEM_DEFINE(world, DespawnEntities, EcsPreStore, Despawn);
   ECS_SYSTEM_DEFINE(world, ShowHealth, EcsOnStore, Killable, movement.Position);
 
-  ECS_SYSTEM_DEFINE(world, DamageOnCollision, EcsPostUpdate, Damage($this),
-                    collisions.CollidesWith($this, $other), Killable($other),
-                    !player.Player($other));
+  ECS_SYSTEM_DEFINE(world, DamageNonPlayerOnCollision, EcsPostUpdate,
+                    Damage($this), collisions.CollidesWith($this, $other),
+                    Killable($other), !enemies.Enemy($this),
+                    !players.PlayerTeam($other));
+  ECS_SYSTEM_DEFINE(world, DamagePlayerOnCollision, EcsPostUpdate,
+                    Damage($this), collisions.CollidesWith($this, $other),
+                    Killable($other), enemies.Enemy($this),
+                    players.PlayerTeam($other));
 }

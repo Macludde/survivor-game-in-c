@@ -41,7 +41,7 @@ void FireProjectiles(ecs_iter_t *it) {
 
 void ItemImport(ecs_world_t *world) {
   ECS_MODULE(world, Item);
-  ECS_IMPORT(world, Player);
+  ECS_IMPORT(world, Players);
   ECS_IMPORT(world, Movement);
   ECS_IMPORT(world, Collisions);
   ECS_IMPORT(world, Health);

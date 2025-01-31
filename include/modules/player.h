@@ -2,8 +2,20 @@
 
 #include "flecs.h"
 
-extern ECS_DECLARE(Player);
+typedef struct Player {
+  int level;
+  float experience;
+} Player;
 
-void PlayerImport(ecs_world_t *world);
+typedef float DropsExperience;
+typedef float Experience;
 
-// HeldItem(Player, ...)
+extern ECS_DECLARE(PlayerTeam);
+extern ECS_COMPONENT_DECLARE(Player);
+extern ECS_COMPONENT_DECLARE(DropsExperience);
+extern ECS_COMPONENT_DECLARE(Experience);
+
+extern ECS_SYSTEM_DECLARE(PickUpExperience);
+extern ECS_SYSTEM_DECLARE(DrawLevel);
+
+void PlayersImport(ecs_world_t *world);

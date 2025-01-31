@@ -49,7 +49,7 @@ int main() {
   world = ecs_init();
   InitializeTickSource(world);
   ecs_set_threads(world, 8);
-  ECS_IMPORT(world, Player);
+  ECS_IMPORT(world, Players);
   ECS_IMPORT(world, Health);
   ECS_IMPORT(world, Item);
 
@@ -79,7 +79,7 @@ int main() {
   ecs_set(world, player, Rigidbody, RIGIDBODY(1200));
   ecs_set(world, player, MaxSpeed, {200});
   ecs_set(world, player, Killable, KILLABLE(100));
-  ecs_add_id(world, player, Player);
+  ecs_set(world, player, Player, {});
   ecs_add_id(world, player, WASDMovable);
   // ecs_add_pair(world, SimpleGun(world), EcsChildOf, player);
   ecs_add_pair(world, FlameGrenade(world), EcsChildOf, player);

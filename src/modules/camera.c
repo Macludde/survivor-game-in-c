@@ -164,10 +164,10 @@ void CameraImport(ecs_world_t *world) {
   };
   ECS_MODULE(world, Camera);
   ECS_IMPORT(world, Movement);
-  ECS_IMPORT(world, Player);
+  ECS_IMPORT(world, Players);
   Position a = {0, 0};
 
-  ECS_SYSTEM_DEFINE(world, MoveCameraToPosition, EcsPostUpdate, player.Player,
+  ECS_SYSTEM_DEFINE(world, MoveCameraToPosition, EcsPostUpdate, players.Player,
                     movement.Position);
 
   // on store is 2d camera rendering, UI rendering is done in

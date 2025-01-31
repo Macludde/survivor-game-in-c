@@ -62,6 +62,6 @@ void CollisionsImport(ecs_world_t *world) {
       {.expr =
            "[in] Collidable, [in] movement.Position, [out] CollidesWith()"});
 
-  ECS_SYSTEM_DEFINE(world, Collide, EcsOnUpdate, [in] Collidable,
+  ECS_SYSTEM_DEFINE(world, Collide, EcsOnValidate, [in] Collidable,
                     [in] movement.Position, [out] CollidesWith());
 }

@@ -23,6 +23,7 @@ extern ECS_COMPONENT_DECLARE(Damage);
 
 extern ECS_SYSTEM_DECLARE(KillHealthless);
 extern ECS_SYSTEM_DECLARE(DespawnEntities);
-extern ECS_SYSTEM_DECLARE(DamageOnCollision);
+extern ECS_SYSTEM_DECLARE(DamageNonPlayerOnCollision);
+extern ECS_SYSTEM_DECLARE(DamagePlayerOnCollision);
 
 void HealthImport(ecs_world_t *world);
