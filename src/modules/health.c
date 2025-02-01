@@ -10,6 +10,7 @@
 #include "modules/movement.h"
 #include "modules/player.h"
 #include "raylib.h"
+#include "tick.h"
 
 ECS_COMPONENT_DECLARE(Killable);
 ECS_COMPONENT_DECLARE(Despawn);
@@ -106,12 +107,16 @@ void HealthImport(ecs_world_t *world) {
   ECS_SYSTEM_DEFINE(world, ShowHealth, EcsOnStore, Killable, movement.Position,
                     Healthbar);
 
-  ECS_SYSTEM_DEFINE(world, DamageNonPlayerOnCollision, EcsPostUpdate,
-                    Damage($this), collisions.CollidesWith($this, $other),
-                    Killable($other), !enemies.Enemy($this),
-                    !players.PlayerTeam($other));
-  ECS_SYSTEM_DEFINE(world, DamagePlayerOnCollision, EcsPostUpdate,
-                    Damage($this), collisions.CollidesWith($this, $other),
-                    Killable($other), enemies.Enemy($this),
-                    players.PlayerTeam($other));
+  ECS_SYSTEM_DEFINE(
+      world, DamageNonPlayerOnCollision, EcsPostUpdate, [in] Damage($this),
+      [in] collisions.CollidesWith($this, $other), [inout] Killable($other),
+      !enemies.Enemy($this), !players.PlayerTeam($other));
+  ECS_SYSTEM_DEFINE(
+      world, DamagePlayerOnCollision, EcsPostUpdate, [in] Damage($this),
+      [in] collisions.CollidesWith($this, $other), [inout] Killable($other),
+      enemies.Enemy($this), players.PlayerTeam($other));
+
+  // ecs_set_tick_source(world, ecs_id(DamageNonPlayerOnCollision),
+  // tick_source); ecs_set_tick_source(world, ecs_id(DamagePlayerOnCollision),
+  // tick_source);
 }
