@@ -67,7 +67,7 @@ ecs_entity_t CreateEnemy(ecs_world_t *world) {
               .color = SlightColorVariation(ENEMY_COLOR),
           });
   ecs_set(world, enemy, Collidable, {.radius = size / 2});
-  ecs_set(world, enemy, Rigidbody, RIGIDBODY(size * size / 2));
+  ecs_set(world, enemy, Rigidbody, RIGIDBODY(size * size / 24));
   ecs_set(world, enemy, Damage, {10});
 
   return enemy;

@@ -41,7 +41,7 @@ static void SpawnExperienceOnEnemyDeath(ecs_iter_t *it) {
   if ((ecs_should_quit(it->world))) return;
 
   if (!experiencePrefrab) {
-    experiencePrefrab = ecs_new(it->world);
+    experiencePrefrab = ecs_new_w_id(it->world, EcsPrefab);
     ecs_set(it->world, experiencePrefrab, RectShape,
             {
                 .offset = {0, 0},

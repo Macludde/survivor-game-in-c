@@ -25,7 +25,7 @@ static void SolvePenetration(Vector2 *posA, Vector2 *posB, float radiusA,
   if (penetration > 0) {
     Vector2 correctionDir = SafeNormalize(delta);
     float totalInvMass = invMassA + invMassB;
-    float correction = penetration * 0.8f;
+    float correction = penetration * 1.0f;
 
     *posA = Vector2Add(
         *posA,
@@ -37,7 +37,7 @@ static void SolvePenetration(Vector2 *posA, Vector2 *posB, float radiusA,
 }
 
 #define BOUNCINESS 0.8f
-#define MAX_IMPULSE 100000.0f
+#define MAX_IMPULSE 1000.0f
 static void ResolveCollision(Rigidbody *bodyA, Rigidbody *bodyB, Velocity velA,
                              Velocity velB, Vector2 normal) {
   // Relative velocity at contact point
@@ -48,7 +48,7 @@ static void ResolveCollision(Rigidbody *bodyA, Rigidbody *bodyB, Velocity velA,
   // float e = fminf(rbA->restitution, rbB->restitution);
   float e = BOUNCINESS;
   float j = -(1.0f + e) * velAlongNormal;
-  j /= bodyA->inverseMass + bodyB->inverseMass;
+  j = j / (bodyA->inverseMass + bodyB->inverseMass);
 
   // Clamp impulse to prevent instability
   j = fmaxf(j, -MAX_IMPULSE);
@@ -88,9 +88,12 @@ void ResolveCollisions(ecs_iter_t *it) {
   CollidesWith *c = ecs_field(it, CollidesWith, 2);
   Rigidbody *r2 = ecs_field(it, Rigidbody, 3);
   Velocity *v2 = ecs_field(it, Velocity, 4);
+  Position *p1 = ecs_field(it, Position, 5);
+  Position *p2 = ecs_field(it, Position, 6);
 
   for (int i = 0; i < it->count; ++i) {
-    ResolveCollision(&r1[i], &r2[i], v1[i], v2[i], c[i].normal);
+    Vector2 normal = SafeNormalize(Vector2Subtract(p1[i], p2[i]));
+    ResolveCollision(&r1[i], &r2[i], v1[i], v2[i], normal);
   }
 }
 
@@ -116,13 +119,14 @@ void PhysicsImport(ecs_world_t *world) {
   ECS_SYSTEM_DEFINE(world, ResolveCollisions, EcsPostUpdate,
                     Rigidbody($this), [in] movement.Velocity($this),
                     [in] collisions.CollidesWith($this, $other),
-                    Rigidbody($other), [in] movement.Velocity($other));
-  ECS_SYSTEM_DEFINE(
-      world, SolvePenetrations, EcsPostUpdate,
-      movement.Position($this), [in] collisions.Collidable($this),
-      [in] Rigidbody($this), [in] collisions.CollidesWith($this, $other),
-      movement.Position($other), [in] collisions.Collidable($other),
-      [in] Rigidbody($other));
-  ECS_SYSTEM_DEFINE(world, ApplyAllImpulses, EcsPostUpdate, Rigidbody,
-                    movement.Velocity);
+                    Rigidbody($other), [in] movement.Velocity($other),
+                    movement.Position($this), movement.Position($other));
+  ECS_SYSTEM_DEFINE(world, SolvePenetrations,
+                    EcsPostUpdate, [inout] movement.Position($this),
+                    [in] collisions.Collidable($this), [in] Rigidbody($this),
+                    [in] collisions.CollidesWith($this, $other),
+                    [inout] movement.Position($other),
+                    [in] collisions.Collidable($other), [in] Rigidbody($other));
+  ECS_SYSTEM_DEFINE(world, ApplyAllImpulses, EcsPostUpdate,
+                    Rigidbody, [out] movement.Velocity);
 }

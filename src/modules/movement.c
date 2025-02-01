@@ -162,7 +162,8 @@ void MovementImport(ecs_world_t *world) {
                     Acceleration);
   ECS_SYSTEM_DEFINE(world, CapVelocity, EcsOnUpdate, Velocity, [in] MaxSpeed);
   ECS_SYSTEM_DEFINE(world, MovementMove, EcsOnUpdate, Position, Velocity);
-  ECS_SYSTEM_DEFINE(world, MovementFriction,EcsPostUpdate, Velocity, [in] ?Friction);
+  ECS_SYSTEM_DEFINE(world, MovementFriction,EcsPostUpdate, Velocity, [in]
+  ?Friction);
 
   ECS_SYSTEM_DEFINE(world, ArcMove, EcsOnUpdate, Position, ArcMotion);
   ECS_SYSTEM_DEFINE(world, MoveCircleCenter, EcsOnUpdate, [in] Velocity,

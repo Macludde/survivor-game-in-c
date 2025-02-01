@@ -76,7 +76,7 @@ int main() {
   ecs_set(world, player, CircleShape,
           {.offset = {0, 0}, .radius = 20, .color = BLUE});
   ecs_set(world, player, Collidable, {.radius = 20});
-  ecs_set(world, player, Rigidbody, RIGIDBODY(1200));
+  ecs_set(world, player, Rigidbody, RIGIDBODY(100));
   ecs_set(world, player, MaxSpeed, {200});
   ecs_set(world, player, Killable, KILLABLE(100));
   ecs_set(world, player, Player, {});
