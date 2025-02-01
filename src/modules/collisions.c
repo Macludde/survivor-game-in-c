@@ -2,7 +2,6 @@
 
 #include "flecs.h"
 #include "modules/movement.h"
-#include "modules/physics.h"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -35,7 +34,7 @@ void Collide(ecs_iter_t *it) {
                      // entities reversed.
 
         if (CheckCollisionCircles(p1[i], c1[i].radius, p2[j], c2[j].radius)) {
-          Vector2 normal = SafeNormalize(Vector2Subtract(p1[i], p2[j]));
+          Vector2 normal = Vector2Normalize(Vector2Subtract(p1[i], p2[j]));
           // if (!ecs_has_pair(it->world, e1, ecs_id(CollidesWith), e2))
           ecs_set_pair(it->world, e1, CollidesWith, e2, {normal});
         } else if (ecs_has_pair(it->world, e1, ecs_id(CollidesWith), e2)) {

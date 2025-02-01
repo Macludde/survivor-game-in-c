@@ -5,19 +5,15 @@
 #include "flecs.h"
 #include "helpers.h"
 #include "level.h"
-#include "modules/camera.h"
 #include "modules/collisions.h"
 #include "modules/health.h"
 #include "modules/movement.h"
-#include "modules/physics.h"
 #include "modules/player.h"
-#include "modules/render.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "tick.h"
 
 extern Level level;
-extern Camera2D camera;
 extern ecs_entity_t tick_source;
 
 ECS_COMPONENT_DECLARE(EnemySpawner);
@@ -31,19 +27,11 @@ static ecs_entity_t enemyPrefab = 0;
 static ecs_query_t *playerQuery;
 
 ecs_entity_t CreateEnemyPrefab(ecs_world_t *world) {
-  ecs_entity_t enemy =
-      ecs_entity(world, {.name = "Enemy", .add = ecs_ids(EcsPrefab, Enemy)});
+  ecs_entity_t enemy = ecs_entity(world, {.add = ecs_ids(EcsPrefab, Enemy)});
   ecs_add(world, enemy, Position);
-  ecs_set(world, enemy, Velocity, {0, 0});
-  ecs_set(world, enemy, Acceleration, {0, 0});
-  ecs_set(world, enemy, Rotation, {0});
-  ecs_set(world, enemy, MaxSpeed, {400});
-  ecs_add(world, enemy, RectShape);
-  ecs_add(world, enemy, Rigidbody);
   ecs_add(world, enemy, Collidable);
   ecs_set(world, enemy, Killable, KILLABLE(20));
   ecs_set(world, enemy, DropsExperience, {20});
-  ecs_add(world, enemy, Healthbar);
 
   return enemy;
 }
@@ -56,18 +44,8 @@ ecs_entity_t CreateEnemy(ecs_world_t *world) {
   }
   float size = SlightVariation() * ENEMY_DEFAULT_SIZE;
   ecs_entity_t enemy = ecs_new_w_pair(world, EcsIsA, enemyPrefab);
-  Vector2 pos = ClampedRandomPointOffScreen(
-      MIN_DISTANCE_TO_CAMERA, MAX_DISTANCE_TO_CAMERA,
-      (Area){{-level.width, -level.height}, {level.width, level.height}});
-  ecs_set(world, enemy, Position, {pos.x, pos.y});
-  ecs_set(world, enemy, RectShape,
-          {
-              .offset = {0, 0},
-              .size = {size, size / 2},
-              .color = SlightColorVariation(ENEMY_COLOR),
-          });
+  ecs_set(world, enemy, Position, {10, 10});
   ecs_set(world, enemy, Collidable, {.radius = size / 2});
-  ecs_set(world, enemy, Rigidbody, RIGIDBODY(size * size / 24));
   ecs_set(world, enemy, Healthbar, HEALTHBAR_GIVEN_RADIUS(size / 2));
   ecs_set(world, enemy, Damage, {10});
 
