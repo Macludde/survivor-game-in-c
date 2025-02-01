@@ -13,7 +13,6 @@ ECS_DECLARE(Weapon);
 ECS_DECLARE(Projectile);
 ECS_DECLARE(TargetsClosestEnemy);
 ECS_COMPONENT_DECLARE(ProjectileShooter);
-ECS_COMPONENT_DECLARE(Damage);
 
 ECS_SYSTEM_DECLARE(FireProjectiles);
 

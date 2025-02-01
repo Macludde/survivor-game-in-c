@@ -15,7 +15,7 @@ ECS_COMPONENT_DECLARE(Experience);
 ECS_SYSTEM_DECLARE(PickUpExperience);
 ECS_SYSTEM_DECLARE(DrawLevel);
 
-static int ExperienceRequiredToLevelUp(int level) { return 100 * level; }
+int ExperienceRequiredToLevelUp(int level) { return 100 * level; }
 
 static void LevelUpIfPossible(Player *player) {
   if (player->experience >= ExperienceRequiredToLevelUp(player->level)) {
@@ -63,18 +63,6 @@ static void SpawnExperienceOnEnemyDeath(ecs_iter_t *it) {
   }
 }
 
-static void DrawLevel(ecs_iter_t *it) {
-  Player *player = ecs_field(it, Player, 0);
-  Position *pos = ecs_field(it, Position, 1);
-
-  for (int i = 0; i < it->count; i++) {
-    DrawText(TextFormat("Level: %d", player[i].level), pos[i].x, pos[i].y - 20,
-             20, BLACK);
-    DrawText(TextFormat("Experience: %0.f", player[i].experience), pos[i].x,
-             pos[i].y - 40, 20, BLACK);
-  }
-}
-
 void PlayersImport(ecs_world_t *world) {
   ECS_MODULE(world, Players);
   ECS_IMPORT(world, Movement);
@@ -90,8 +78,6 @@ void PlayersImport(ecs_world_t *world) {
   ECS_SYSTEM_DEFINE(
       world, PickUpExperience, EcsOnUpdate, [out] Player($this),
       collisions.CollidesWith($this, $other), [out] Experience($other));
-  ECS_SYSTEM_DEFINE(world, DrawLevel, EcsOnStore, [in] Player,
-                    movement.Position);
 
   ECS_OBSERVER(world, SpawnExperienceOnEnemyDeath, EcsOnRemove,
                DropsExperience, [in] movement.Position);
