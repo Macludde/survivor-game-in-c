@@ -1,7 +1,6 @@
 #pragma once
 
 #include "flecs.h"
-#include "level.h"
 #include "modules/movement.h"
 #include "raylib.h"
 
@@ -20,8 +19,6 @@ extern ECS_DECLARE(Enemy);
 extern ECS_COMPONENT_DECLARE(EnemySpawner);
 
 extern ECS_SYSTEM_DECLARE(SpawnEnemy);
-extern ECS_SYSTEM_DECLARE(EnemyTargetPlayer);
-extern ECS_SYSTEM_DECLARE(EnemyAccelerate);
 
 void EnemiesImport(ecs_world_t *world);
 Position *ClosestEnemy(Position origin, ecs_world_t *world, int maxRange);

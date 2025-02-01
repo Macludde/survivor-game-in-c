@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #define DEBUG_SHOW_HITBOXES
 
-#include "helpers.h"
-#include "level.h"
 #include "modules/collisions.h"
 #include "modules/enemies.h"
 #include "modules/health.h"
@@ -12,8 +10,6 @@
 #include "modules/player.h"
 #include "raylib.h"
 #include "raymath.h"
-#include "resource_dir.h"  // utility header for SearchAndSetResourceDir
-#include "tick.h"
 #define STB_DS_IMPLEMENTATION
 #include "flecs.h"
 #include "lib/stb_ds.h"
@@ -23,7 +19,6 @@
 #define GAME_NAME "SurvivorGame"
 
 extern int targetFps;
-Level level;
 
 int main() {
   ecs_world_t *world = ecs_init();

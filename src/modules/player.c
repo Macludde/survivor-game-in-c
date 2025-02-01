@@ -1,7 +1,6 @@
 #include "modules/player.h"
 
 #include "flecs.h"
-#include "helpers.h"
 #include "modules/collisions.h"
 #include "modules/health.h"
 #include "modules/movement.h"
@@ -50,7 +49,6 @@ static void SpawnExperienceOnEnemyDeath(ecs_iter_t *it) {
     ecs_entity_t experience = ecs_new(it->world);
     ecs_add_pair(it->world, experience, EcsIsA, ExperiencePrefab);
     ecs_set(it->world, experience, Position, {pos->x, pos->y});
-    ecs_set(it->world, experience, Despawn, DESPAWN_IN(15));
     ecs_set(it->world, experience, Experience, {droppedExperience[i]});
   }
 }

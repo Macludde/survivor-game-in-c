@@ -18,6 +18,5 @@ extern ECS_COMPONENT_DECLARE(DropsExperience);
 extern ECS_COMPONENT_DECLARE(Experience);
 
 extern ECS_SYSTEM_DECLARE(PickUpExperience);
-extern ECS_SYSTEM_DECLARE(DrawLevel);
 
 void PlayersImport(ecs_world_t *world);
