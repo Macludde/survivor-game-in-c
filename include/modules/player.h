@@ -10,6 +10,8 @@ typedef struct Player {
 typedef float DropsExperience;
 typedef float Experience;
 
+int ExperienceRequiredToLevelUp(int level);
+
 extern ECS_DECLARE(PlayerTeam);
 extern ECS_COMPONENT_DECLARE(Player);
 extern ECS_COMPONENT_DECLARE(DropsExperience);

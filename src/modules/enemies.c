@@ -26,7 +26,6 @@ ECS_TAG_DECLARE(Enemy);
 ECS_SYSTEM_DECLARE(SpawnEnemy);
 ECS_SYSTEM_DECLARE(EnemyTargetPlayer);
 ECS_SYSTEM_DECLARE(EnemyAccelerate);
-ECS_SYSTEM_DECLARE(EnemyHitPlayer);
 
 static ecs_entity_t enemyPrefab = 0;
 static ecs_query_t *playerQuery;
@@ -44,6 +43,7 @@ ecs_entity_t CreateEnemyPrefab(ecs_world_t *world) {
   ecs_add(world, enemy, Collidable);
   ecs_set(world, enemy, Killable, KILLABLE(20));
   ecs_set(world, enemy, DropsExperience, {20});
+  ecs_add(world, enemy, Healthbar);
 
   return enemy;
 }
@@ -68,6 +68,7 @@ ecs_entity_t CreateEnemy(ecs_world_t *world) {
           });
   ecs_set(world, enemy, Collidable, {.radius = size / 2});
   ecs_set(world, enemy, Rigidbody, RIGIDBODY(size * size / 24));
+  ecs_set(world, enemy, Healthbar, HEALTHBAR_GIVEN_RADIUS(size / 2));
   ecs_set(world, enemy, Damage, {10});
 
   return enemy;

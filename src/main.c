@@ -19,6 +19,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "resource_dir.h"  // utility header for SearchAndSetResourceDir
+#include "systems.h"
 #include "tick.h"
 #define STB_DS_IMPLEMENTATION
 #include "flecs.h"
@@ -48,8 +49,11 @@ int main() {
 
   world = ecs_init();
   InitializeTickSource(world);
-  ecs_set_threads(world, 8);
-  ECS_IMPORT(world, Players);
+  // ecs_set_threads(world, 8);
+
+  ECS_IMPORT(world,
+             Camera);  // define first to get order of render stages correct
+
   ECS_IMPORT(world, Health);
   ECS_IMPORT(world, Item);
 
@@ -57,11 +61,12 @@ int main() {
   ECS_IMPORT(world, Collisions);
   ECS_IMPORT(world, Physics);
 
-  ECS_IMPORT(world, Enemies);
-
-  ECS_IMPORT(world, Camera);
-  ECS_IMPORT(world, Controls);
   ECS_IMPORT(world, Render);
+  ECS_IMPORT(world, Controls);
+
+  ECS_IMPORT(world, Players);
+  ECS_IMPORT(world, Enemies);
+  SetupSystems(world);
 
   level = (Level){
       .width = 200 * 5,
@@ -79,14 +84,17 @@ int main() {
   ecs_set(world, player, Rigidbody, RIGIDBODY(100));
   ecs_set(world, player, MaxSpeed, {200});
   ecs_set(world, player, Killable, KILLABLE(100));
-  ecs_set(world, player, Player, {});
+  ecs_set(world, player, Player, {.level = 1});
+  ecs_set(world, player, Healthbar, HEALTHBAR_GIVEN_RADIUS(20));
   ecs_add_id(world, player, WASDMovable);
-  // ecs_add_pair(world, SimpleGun(world), EcsChildOf, player);
+  ecs_add_pair(world, SimpleGun(world), EcsChildOf, player);
   ecs_add_pair(world, FlameGrenade(world), EcsChildOf, player);
   ecs_add_pair(world, OrbitOrb(world), EcsChildOf, player);
 
+  // ecs_set_tick_source(world, ecs_id(SpawnEnemy), tick_source);
+
   ecs_entity_t enemySpawner = ecs_entity(world, {.name = "EnemySpawner"});
-  ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 1000});
+  ecs_set(world, enemySpawner, EnemySpawner, {.ticksBetweenSpawns = 10});
 
   // game loop
   while (!IsWindowReady());

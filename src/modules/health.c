@@ -10,9 +10,12 @@
 #include "modules/movement.h"
 #include "modules/player.h"
 #include "raylib.h"
+#include "tick.h"
 
 ECS_COMPONENT_DECLARE(Killable);
 ECS_COMPONENT_DECLARE(Despawn);
+ECS_COMPONENT_DECLARE(Damage);
+ECS_COMPONENT_DECLARE(Healthbar);
 
 ECS_SYSTEM_DECLARE(ShowHealth);
 ECS_SYSTEM_DECLARE(KillHealthless);
@@ -23,12 +26,16 @@ ECS_SYSTEM_DECLARE(DamagePlayerOnCollision);
 void ShowHealth(ecs_iter_t *it) {
   Killable *k = ecs_field(it, Killable, 0);
   Position *p = ecs_field(it, Position, 1);
+  Healthbar *bar = ecs_field(it, Healthbar, 2);
   for (int i = 0; i < it->count; i++) {
     if (k[i].health < k[i].maxHealth) {
       // draw healthbar
-      DrawRectangle(p[i].x - 20, p[i].y - 60, 40, 5, BLACK);
-      DrawRectangle(p[i].x - 20, p[i].y - 60,
-                    40 * (k[i].health / k[i].maxHealth), 5, GREEN);
+      Rectangle backgroundBar = {p[i].x - bar[i].width / 2,
+                                 p[i].y - bar[i].topMargin, bar[i].width, 5};
+      Rectangle health = {p[i].x - bar[i].width / 2, p[i].y - bar[i].topMargin,
+                          bar[i].width * (k[i].health / k[i].maxHealth), 5};
+      DrawRectangleRounded(backgroundBar, 0.8f, 4, BLACK);
+      DrawRectangleRounded(health, 0.8f, 4, GREEN);
 // draw text above healthbar
 #if DEBUG
       DrawText(TextFormat("%.0f / %.0f", k[i].health, k[i].maxHealth),
@@ -93,17 +100,23 @@ void HealthImport(ecs_world_t *world) {
   ECS_COMPONENT_DEFINE(world, Killable);
   ECS_COMPONENT_DEFINE(world, Despawn);
   ECS_COMPONENT_DEFINE(world, Damage);
+  ECS_COMPONENT_DEFINE(world, Healthbar);
 
   ECS_SYSTEM_DEFINE(world, KillHealthless, EcsPreStore, Killable);
   ECS_SYSTEM_DEFINE(world, DespawnEntities, EcsPreStore, Despawn);
-  ECS_SYSTEM_DEFINE(world, ShowHealth, EcsOnStore, Killable, movement.Position);
+  ECS_SYSTEM_DEFINE(world, ShowHealth, EcsOnStore, Killable, movement.Position,
+                    Healthbar);
 
-  ECS_SYSTEM_DEFINE(world, DamageNonPlayerOnCollision, EcsPostUpdate,
-                    Damage($this), collisions.CollidesWith($this, $other),
-                    Killable($other), !enemies.Enemy($this),
-                    !players.PlayerTeam($other));
-  ECS_SYSTEM_DEFINE(world, DamagePlayerOnCollision, EcsPostUpdate,
-                    Damage($this), collisions.CollidesWith($this, $other),
-                    Killable($other), enemies.Enemy($this),
-                    players.PlayerTeam($other));
+  ECS_SYSTEM_DEFINE(
+      world, DamageNonPlayerOnCollision, EcsPostUpdate, [in] Damage($this),
+      [in] collisions.CollidesWith($this, $other), [inout] Killable($other),
+      !enemies.Enemy($this), !players.PlayerTeam($other));
+  ECS_SYSTEM_DEFINE(
+      world, DamagePlayerOnCollision, EcsPostUpdate, [in] Damage($this),
+      [in] collisions.CollidesWith($this, $other), [inout] Killable($other),
+      enemies.Enemy($this), players.PlayerTeam($other));
+
+  // ecs_set_tick_source(world, ecs_id(DamageNonPlayerOnCollision),
+  // tick_source); ecs_set_tick_source(world, ecs_id(DamagePlayerOnCollision),
+  // tick_source);
 }

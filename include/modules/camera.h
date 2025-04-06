@@ -4,11 +4,8 @@
 #include "flecs.h"
 #include "raylib.h"
 
-#define CAMERA_MOVEMENT_SPEED 2.0f
-
 // declare the Component type
 
-extern ECS_SYSTEM_DECLARE(MoveCameraToPosition);
 extern ECS_SYSTEM_DECLARE(Begin2D);
 extern ECS_SYSTEM_DECLARE(End2D);
 extern ECS_SYSTEM_DECLARE(CameraHandleWindowResize);
